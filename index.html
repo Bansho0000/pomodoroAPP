@@ -487,6 +487,54 @@
         #mode-indicator {
             color: #9ece6a;
         }
+
+        .pomodoro-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #a9b1d6;
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            color: #7aa2f7;
+        }
+
+        .toggle-btn.rotated {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        #pomodoro-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        #pomodoro-content.collapsed {
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        #pomodoro-container.collapsed {
+            padding: 8px 16px;
+        }
+
+        #pomodoro-container.collapsed #pomodoro-display {
+            font-size: 2rem;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -521,19 +569,24 @@
 
     <div id="pomodoro-container" class="fixed-card">
         <div id="pomodoro-timer" class="text-center">
-            <div id="pomodoro-display">25:00</div>
-            <div class="progress-container">
-                <div id="progress-bar"></div>
+            <div class="pomodoro-header">
+                <div id="pomodoro-display">25:00</div>
+                <button id="toggle-pomodoro" class="toggle-btn" title="折りたたみ"><i class="fas fa-chevron-up"></i></button>
             </div>
-            <div class="pomodoro-buttons">
-                <button id="start-pomodoro" class="pomodoro-btn" title="開始 (Space)"><i class="fas fa-play"></i></button>
-                <button id="pause-pomodoro" class="pomodoro-btn" disabled title="一時停止 (Space)"><i class="fas fa-pause"></i></button>
-                <button id="reset-pomodoro" class="pomodoro-btn" title="リセット (R)"><i class="fas fa-redo"></i></button>
-                <button id="settings-pomodoro" class="pomodoro-btn" title="設定 (S)"><i class="fas fa-cog"></i></button>
-            </div>
-            <div id="session-info" class="text-sm mt-2">
-                <span id="session-count">セッション: 0</span>
-                <span id="mode-indicator">作業中</span>
+            <div id="pomodoro-content">
+                <div class="progress-container">
+                    <div id="progress-bar"></div>
+                </div>
+                <div class="pomodoro-buttons">
+                    <button id="start-pomodoro" class="pomodoro-btn" title="開始 (Space)"><i class="fas fa-play"></i></button>
+                    <button id="pause-pomodoro" class="pomodoro-btn" disabled title="一時停止 (Space)"><i class="fas fa-pause"></i></button>
+                    <button id="reset-pomodoro" class="pomodoro-btn" title="リセット (R)"><i class="fas fa-redo"></i></button>
+                    <button id="settings-pomodoro" class="pomodoro-btn" title="設定 (S)"><i class="fas fa-cog"></i></button>
+                </div>
+                <div id="session-info" class="text-sm mt-2">
+                    <span id="session-count">セッション: 0</span>
+                    <span id="mode-indicator">作業中</span>
+                </div>
             </div>
         </div>
     </div>
@@ -627,6 +680,8 @@
         ];
         let currentToneTrackIndex = 0;
         let toneSequence;
+
+        let isPomodoroCollapsed = false;
 
         // --- Utility Functions ---
         function showMessage(message, duration = 2500) {
@@ -1090,6 +1145,23 @@
 
         document.getElementById('save-settings').addEventListener('click', saveSettings);
 
+        function togglePomodoro() {
+            const content = document.getElementById('pomodoro-content');
+            const container = document.getElementById('pomodoro-container');
+            const toggleBtn = document.getElementById('toggle-pomodoro');
+            
+            isPomodoroCollapsed = !isPomodoroCollapsed;
+            content.classList.toggle('collapsed');
+            container.classList.toggle('collapsed');
+            toggleBtn.classList.toggle('rotated');
+            
+            // 状態を保存
+            localStorage.setItem('pomodoroCollapsed', isPomodoroCollapsed);
+        }
+
+        // イベントリスナーの追加
+        document.getElementById('toggle-pomodoro').addEventListener('click', togglePomodoro);
+
         window.addEventListener('load', () => {
             updateClock();
             loadTasksFromLocalStorage();
@@ -1097,6 +1169,10 @@
             loadYouTubeAPI();
             showMessage("右下の歯車アイコンから背景動画を設定できます。", 4000);
             loadSettings();
+            const savedCollapsed = localStorage.getItem('pomodoroCollapsed');
+            if (savedCollapsed === 'true') {
+                togglePomodoro();
+            }
         });
     </script>
 </body>
