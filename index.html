@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集中アプリ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1b26;
+            color: #c0caf5;
+            min-height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #youtube-player-background {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 100vh;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+        #youtube-player-background iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .fixed-card {
+            background-color: rgba(31, 35, 53, 0.85);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: fixed;
+            z-index: 10;
+            margin: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .fixed-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.25);
+        }
+
+        #clock-container {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 30px;
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: #a9b1d6;
+            letter-spacing: 2px;
+        }
+
+        #tasks-container {
+            top: 0;
+            right: 0;
+            width: 280px;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: #a9b1d6;
+            border-bottom: 1px solid rgba(59, 66, 97, 0.5);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        #add-task-float-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 11;
+            transition: all 0.2s ease;
+        }
+
+        #add-task-float-btn:hover {
+            background-color: #567efb;
+            transform: scale(1.1);
+        }
+
+        #new-task-input-field input {
+            width: calc(100% - 50px);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #3b4261;
+            background-color: rgba(41, 46, 66, 0.8);
+            color: #c0caf5;
+            font-size: 0.9rem;
+            margin-right: 8px;
+            transition: all 0.2s ease;
+        }
+
+        #new-task-input-field input:focus {
+            outline: none;
+            border-color: #7aa2f7;
+            box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2);
+        }
+
+        #new-task-input-field button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #new-task-input-field button:hover {
+            background-color: #567efb;
+            transform: translateY(-1px);
+        }
+
+        #task-list {
+            list-style: none;
+            padding: 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 140px);
+            font-size: 0.9rem;
+        }
+
+        #task-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(59, 66, 97, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        #task-list li:hover {
+            background-color: rgba(41, 46, 66, 0.3);
+            padding-left: 4px;
+        }
+
+        #task-list input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #7aa2f7;
+        }
+
+        .delete-task-btn {
+            font-size: 0.9rem;
+            color: #f7768e;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+        }
+
+        .delete-task-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        #pomodoro-container {
+            bottom: 0;
+            left: 0;
+            width: 220px;
+        }
+
+        #pomodoro-display {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .pomodoro-buttons button {
+            padding: 8px 12px;
+            margin: 4px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pomodoro-buttons button:hover {
+            background-color: #567efb;
+            transform: translateY(-1px);
+        }
+
+        .pomodoro-buttons button:disabled {
+            background-color: #3b4261;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #settings-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background-color: rgba(31, 35, 53, 0.9);
+            color: #7aa2f7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 20;
+            transition: all 0.3s ease;
+        }
+
+        #settings-icon:hover {
+            background-color: rgba(45, 50, 70, 0.95);
+            transform: rotate(30deg);
+        }
+
+        #youtube-settings-panel {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 300px;
+            background-color: rgba(45, 50, 70, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 19;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #youtube-url-input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #3b4261;
+            background-color: rgba(41, 46, 66, 0.8);
+            color: #c0caf5;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        #youtube-url-input:focus {
+            outline: none;
+            border-color: #7aa2f7;
+            box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2);
+        }
+
+        #set-youtube-bg-btn {
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        #set-youtube-bg-btn:hover {
+            background-color: #567efb;
+            transform: translateY(-1px);
+        }
+
+        .message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(122, 162, 247, 0.95);
+            color: #1a1b26;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .message-box.show {
+            opacity: 1;
+            bottom: 30px;
+            transform: translateX(-50%) translateY(-5px);
+        }
+
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(36, 40, 59, 0.3);
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5270;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5c678a;
+        }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fixed-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        #video-controls-container {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto; /* Adjust width to fit new controls */
+            padding: 10px 15px;
+            display: flex; /* For aligning items in the control bar */
+            flex-direction: column; /* Stack main controls and volume controls */
+            align-items: center;
+        }
+        .main-video-controls { /* Wrapper for prev, play/pause, next */
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px; /* Space between main controls and volume controls */
+        }
+        .main-video-controls button { padding: 6px 10px; margin: 0 3px; font-size: 0.85rem; }
+        
+        .volume-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Center volume controls */
+            width: 100%;
+            max-width: 180px; /* Limit width of volume controls area */
+        }
+        #mute-toggle-btn {
+            background: none;
+            border: none;
+            color: #a9b1d6;
+            cursor: pointer;
+            font-size: 0.9rem; /* Slightly larger for easier clicking */
+            padding: 5px;
+        }
+        #mute-toggle-btn:hover { color: #7aa2f7; }
+        #volume-slider {
+            width: 100px; /* Adjust width as needed */
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #3b4261;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 8px; /* Spacing around slider */
+        }
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #7aa2f7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #volume-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #7aa2f7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        #video-status-display {
+            font-size: 0.8rem;
+            margin-top: 0px; /* Reduced margin as volume controls are below */
+            text-align: center;
+            width: 100%; /* Ensure it takes full width for centering */
+        }
+        #video-controls-container .card-title { display: none; }
+    </style>
+</head>
+<body>
+    <div id="youtube-player-background"></div>
+
+    <div id="clock-container" class="fixed-card">
+        <div id="clock">00:00</div>
+    </div>
+
+    <div id="tasks-container" class="fixed-card">
+        <button id="add-task-float-btn" title="新しいタスクを追加"><i class="fas fa-plus"></i></button>
+        <h2 class="card-title">Tasks</h2>
+        <div id="new-task-input-field">
+            <input type="text" id="task-input-actual" placeholder="タスク内容...">
+            <button id="add-task-confirm-btn">追加</button>
+        </div>
+        <ul id="task-list"></ul>
+    </div>
+
+    <div id="video-controls-container" class="fixed-card">
+        <div class="main-video-controls">
+            <button id="prev-video-btn" title="前のTone.jsトラック (機能変更検討)"><i class="fas fa-backward"></i></button>
+            <button id="play-pause-video-btn" title="背景動画 再生/一時停止"><i class="fas fa-play"></i></button>
+            <button id="next-video-btn" title="次のTone.jsトラック (機能変更検討)"><i class="fas fa-forward"></i></button>
+        </div>
+        <div class="volume-controls">
+            <button id="mute-toggle-btn" title="ミュート"><i class="fas fa-volume-up"></i></button>
+            <input type="range" id="volume-slider" min="0" max="100" value="50" title="音量">
+        </div>
+        <div id="video-status-display">背景動画: 停止中</div>
+    </div>
+
+    <div id="pomodoro-container" class="fixed-card">
+        <h2 class="card-title">Pomodoro</h2>
+        <div id="pomodoro-timer" class="text-center">
+            <div id="pomodoro-display">25:00</div>
+            <div class="pomodoro-buttons">
+                <button id="start-pomodoro">開始</button>
+                <button id="pause-pomodoro" disabled>一時停止</button>
+                <button id="reset-pomodoro">リセット</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-icon" title="背景設定">
+        <i class="fas fa-cog"></i>
+    </div>
+    <div id="youtube-settings-panel" class="fixed-card" style="margin:0;">
+        <label for="youtube-url-input">YouTube 動画 URL:</label>
+        <input type="text" id="youtube-url-input" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
+        <button id="set-youtube-bg-btn">背景を設定</button>
+    </div>
+
+    <div id="message-box-container"></div>
+
+    <script>
+        // --- DOM Elements ---
+        const clockElement = document.getElementById('clock');
+        const addTaskFloatBtn = document.getElementById('add-task-float-btn');
+        const newTaskInputField = document.getElementById('new-task-input-field');
+        const taskInputActual = document.getElementById('task-input-actual');
+        const addTaskConfirmBtn = document.getElementById('add-task-confirm-btn');
+        const taskList = document.getElementById('task-list');
+        const pomodoroDisplay = document.getElementById('pomodoro-display');
+        const startPomodoroBtn = document.getElementById('start-pomodoro');
+        const pausePomodoroBtn = document.getElementById('pause-pomodoro');
+        const resetPomodoroBtn = document.getElementById('reset-pomodoro');
+        
+        const playPauseVideoBtn = document.getElementById('play-pause-video-btn');
+        const prevVideoBtn = document.getElementById('prev-video-btn');
+        const nextVideoBtn = document.getElementById('next-video-btn');
+        const videoStatusDisplay = document.getElementById('video-status-display');
+        const muteToggleBtn = document.getElementById('mute-toggle-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+
+
+        const messageBoxContainer = document.getElementById('message-box-container');
+
+        const settingsIcon = document.getElementById('settings-icon');
+        const youtubeSettingsPanel = document.getElementById('youtube-settings-panel');
+        const youtubeUrlInput = document.getElementById('youtube-url-input');
+        const setYoutubeBgBtn = document.getElementById('set-youtube-bg-btn');
+        let ytPlayer;
+        let isYouTubeVideoPlaying = false;
+
+        // --- App State ---
+        let tasks = [];
+        let pomodoroTimerInterval;
+        let pomodoroTime = 25 * 60;
+        let isPomodoroRunning = false;
+        let currentPomodoroMode = 'work';
+        let workDuration = 25 * 60;
+        let breakDuration = 5 * 60;
+
+        let synth = null;
+        const toneTracks = [
+            { title: "静寂のメロディ", notes: ["C3", "E3", "G3", "C4"] },
+            { title: "星空のハーモニー", notes: ["D3", "F3", "A3", "D4"] },
+            { title: "夜明けのチル", notes: ["E3", "G3", "B3", "E4"] }
+        ];
+        let currentToneTrackIndex = 0;
+        let toneSequence;
+
+        // --- Utility Functions ---
+        function showMessage(message, duration = 2500) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-box';
+            messageDiv.textContent = message;
+            messageBoxContainer.appendChild(messageDiv);
+            void messageDiv.offsetWidth;
+            messageDiv.classList.add('show');
+            setTimeout(() => {
+                messageDiv.classList.remove('show');
+                setTimeout(() => {
+                    if (messageBoxContainer.contains(messageDiv)) {
+                         messageBoxContainer.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // --- YouTube Background Logic ---
+        function loadYouTubeAPI() {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api"; // Corrected API URL
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        window.onYouTubeIframeAPIReady = function() {
+            const savedVideoId = localStorage.getItem('youtubeBgVideoId');
+            const savedVolume = localStorage.getItem('youtubeBgVolume');
+            if (savedVideoId) {
+                loadYouTubeVideo(savedVideoId, savedVolume ? parseInt(savedVolume) : 50);
+            } else {
+                videoStatusDisplay.textContent = "背景動画: 未設定";
+                updateVolumeControlsUI(50, true); // Default UI state for volume
+            }
+        }
+
+        function extractYouTubeVideoId(url) {
+            let videoId = null;
+            try {
+                const urlObj = new URL(url);
+                // Standard YouTube watch URLs
+                if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.pathname === '/watch') {
+                    videoId = urlObj.searchParams.get('v');
+                } 
+                // Shortened youtu.be URLs
+                else if (urlObj.hostname === 'youtu.be') {
+                    videoId = urlObj.pathname.slice(1);
+                }
+                // Embed URLs
+                else if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.pathname.startsWith('/embed/')) {
+                    videoId = urlObj.pathname.split('/embed/')[1].split('?')[0];
+                }
+            } catch (e) {
+                // console.warn("URL parsing with new URL() failed, trying regex for:", url, e);
+            }
+            
+            // Fallback regex if URL parsing failed or for plain IDs / other formats
+            if (!videoId) { 
+                const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/;
+                const match = url.match(regex);
+                if (match) videoId = match[1];
+            }
+            return videoId;
+        }
+        
+        function updateVolumeControlsUI(volume, isMuted) {
+            if (volumeSlider) volumeSlider.value = volume;
+            if (muteToggleBtn) {
+                muteToggleBtn.innerHTML = isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+                muteToggleBtn.title = isMuted ? "ミュート解除" : "ミュート";
+            }
+        }
+
+
+        function loadYouTubeVideo(videoId, initialVolume = 50) {
+            if (!videoId) {
+                showMessage("有効なYouTube動画IDがありません。", 3000);
+                if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                    ytPlayer.destroy(); ytPlayer = null;
+                }
+                document.getElementById('youtube-player-background').innerHTML = '';
+                videoStatusDisplay.textContent = "背景動画: 読み込みエラー";
+                playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
+                isYouTubeVideoPlaying = false;
+                updateVolumeControlsUI(initialVolume, true); // Reset volume UI
+                return;
+            }
+
+            const playerVars = {
+                autoplay: 1, controls: 0, showinfo: 0, modestbranding: 1,
+                loop: 1, playlist: videoId, fs: 0, cc_load_policy: 0,
+                iv_load_policy: 3, autohide: 0, 
+                mute: 0, // Ensure sound is on by default
+                playsinline: 1
+            };
+
+            if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+                ytPlayer.loadVideoById({videoId: videoId}); // Pass as object
+                // Volume and mute state will be set in onReady or preserved if player reloads
+            } else {
+                if (ytPlayer && typeof ytPlayer.destroy === 'function') { ytPlayer.destroy(); }
+                document.getElementById('youtube-player-background').innerHTML = '';
+                ytPlayer = new YT.Player('youtube-player-background', {
+                    videoId: videoId,
+                    playerVars: playerVars,
+                    events: {
+                        'onReady': (event) => {
+                            event.target.setVolume(initialVolume);
+                            // Unmute might not be needed if mute:0 is respected, but good to have
+                            if(event.target.isMuted()) { // Only unmute if it somehow started muted
+                                event.target.unMute();
+                            }
+                            event.target.playVideo();
+                            updateVolumeControlsUI(event.target.getVolume(), event.target.isMuted());
+                        },
+                        'onStateChange': onPlayerStateChange,
+                        'onError': (event) => {
+                            console.error("YouTube Player Error:", event.data);
+                            showMessage("背景動画の読み込みに失敗しました。", 3000);
+                            if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                                ytPlayer.destroy(); ytPlayer = null;
+                            }
+                            document.getElementById('youtube-player-background').innerHTML = '';
+                            videoStatusDisplay.textContent = "背景動画: 読み込みエラー";
+                            playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
+                            isYouTubeVideoPlaying = false;
+                            updateVolumeControlsUI(initialVolume, true);
+                        }
+                    }
+                });
+            }
+            localStorage.setItem('youtubeBgVideoId', videoId);
+            // Initial volume is set in onReady, so no need to save here unless it's changed by user
+        }
+        
+        function onPlayerStateChange(event) {
+            const player = event.target;
+            if (event.data == YT.PlayerState.PLAYING) {
+                isYouTubeVideoPlaying = true;
+                playPauseVideoBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                videoStatusDisplay.textContent = "背景動画: 再生中";
+            } else if (event.data == YT.PlayerState.PAUSED) {
+                isYouTubeVideoPlaying = false;
+                playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
+                videoStatusDisplay.textContent = "背景動画: 一時停止中";
+            } else if (event.data == YT.PlayerState.ENDED) {
+                isYouTubeVideoPlaying = false; 
+                playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
+                videoStatusDisplay.textContent = "背景動画: 停止中";
+            } else if (event.data == YT.PlayerState.CUED) {
+                 videoStatusDisplay.textContent = "背景動画: 準備完了";
+            } else if (event.data == YT.PlayerState.UNSTARTED) {
+                 videoStatusDisplay.textContent = "背景動画: 未開始";
+            }
+            // Always update volume controls on state change as mute state might change
+            if (player && typeof player.getVolume === 'function' && typeof player.isMuted === 'function') {
+                updateVolumeControlsUI(player.getVolume(), player.isMuted());
+            }
+        }
+
+        settingsIcon.addEventListener('click', () => {
+            youtubeSettingsPanel.style.display = youtubeSettingsPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        setYoutubeBgBtn.addEventListener('click', () => {
+            const url = youtubeUrlInput.value.trim();
+            const currentVolume = ytPlayer && typeof ytPlayer.getVolume === 'function' ? ytPlayer.getVolume() : 50;
+            if (url) {
+                const videoId = extractYouTubeVideoId(url);
+                if (videoId) {
+                    loadYouTubeVideo(videoId, currentVolume);
+                    youtubeUrlInput.value = '';
+                    youtubeSettingsPanel.style.display = 'none';
+                    showMessage("背景動画を設定しました。", 2000);
+                } else {
+                    showMessage("無効なYouTube URLまたは動画IDです。", 3000);
+                }
+            } else {
+                localStorage.removeItem('youtubeBgVideoId');
+                if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                    ytPlayer.destroy(); ytPlayer = null;
+                }
+                document.getElementById('youtube-player-background').innerHTML = '';
+                videoStatusDisplay.textContent = "背景動画: 未設定";
+                playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
+                isYouTubeVideoPlaying = false;
+                updateVolumeControlsUI(currentVolume, true);
+                showMessage("背景動画をクリアしました。", 2000);
+            }
+        });
+
+        playPauseVideoBtn.addEventListener('click', () => {
+            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') {
+                showMessage("背景動画プレーヤーが準備できていません。", 2000);
+                return;
+            }
+            const playerState = ytPlayer.getPlayerState();
+            if (playerState === YT.PlayerState.PLAYING) {
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+        });
+
+        muteToggleBtn.addEventListener('click', () => {
+            if (!ytPlayer || typeof ytPlayer.isMuted !== 'function') {
+                showMessage("背景動画プレーヤーが準備できていません。", 2000);
+                return;
+            }
+            if (ytPlayer.isMuted()) {
+                ytPlayer.unMute();
+            } else {
+                ytPlayer.mute();
+            }
+            // Update UI immediately, though onPlayerStateChange might also catch some mute changes
+            updateVolumeControlsUI(ytPlayer.getVolume(), ytPlayer.isMuted());
+        });
+
+        volumeSlider.addEventListener('input', () => {
+            if (!ytPlayer || typeof ytPlayer.setVolume !== 'function') {
+                // showMessage("背景動画プレーヤーが準備できていません。", 1000); // Can be noisy
+                return;
+            }
+            const newVolume = parseInt(volumeSlider.value);
+            ytPlayer.setVolume(newVolume);
+            localStorage.setItem('youtubeBgVolume', newVolume);
+            // If user is sliding volume up and it's muted, unmute it.
+            if (newVolume > 0 && ytPlayer.isMuted()) {
+                ytPlayer.unMute();
+            }
+            updateVolumeControlsUI(newVolume, ytPlayer.isMuted());
+        });
+
+
+        async function initializeToneAudio() {
+            if (!synth) {
+                try {
+                    await Tone.start();
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "fatsine" },
+                        envelope: { attack: 0.2, decay: 0.5, sustain: 0.3, release: 1 },
+                        volume: -20
+                    }).toDestination();
+                } catch (error) { console.error("Tone.js init failed:", error); }
+            }
+        }
+        prevVideoBtn.addEventListener('click', async () => {
+            showMessage("このボタンは現在無効です (YouTube用ではありません)", 2000);
+        });
+        nextVideoBtn.addEventListener('click', async () => {
+            showMessage("このボタンは現在無効です (YouTube用ではありません)", 2000);
+        });
+
+        function updateClock() {
+            const now = new Date();
+            clockElement.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+        setInterval(updateClock, 1000);
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = task.completed ? 'completed' : '';
+                const taskContent = document.createElement('div');
+                taskContent.className = 'flex items-center flex-grow';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox'; checkbox.checked = task.completed; checkbox.dataset.index = index;
+                checkbox.addEventListener('change', toggleTaskCompletion);
+                const span = document.createElement('span');
+                span.textContent = task.text;
+                span.className = 'ml-2 ' + (task.completed ? 'line-through text-gray-500' : '');
+                taskContent.appendChild(checkbox); taskContent.appendChild(span);
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                deleteBtn.className = 'delete-task-btn ml-auto text-red-400 hover:text-red-600';
+                deleteBtn.dataset.index = index;
+                deleteBtn.addEventListener('click', deleteTask);
+                li.appendChild(taskContent); li.appendChild(deleteBtn);
+                taskList.appendChild(li);
+            });
+            saveTasksToLocalStorage();
+        }
+        addTaskFloatBtn.addEventListener('click', () => {
+            newTaskInputField.style.display = newTaskInputField.style.display === 'none' ? 'flex' : 'none';
+            if (newTaskInputField.style.display === 'flex') taskInputActual.focus();
+        });
+        function addNewTask() {
+            const taskText = taskInputActual.value.trim();
+            if (taskText) {
+                tasks.push({ text: taskText, completed: false });
+                taskInputActual.value = ''; renderTasks();
+                newTaskInputField.style.display = 'none';
+            } else { showMessage("タスク内容を入力", 1500); }
+        }
+        addTaskConfirmBtn.addEventListener('click', addNewTask);
+        taskInputActual.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewTask(); });
+        function toggleTaskCompletion(event) {
+            tasks[event.target.dataset.index].completed = !tasks[event.target.dataset.index].completed;
+            renderTasks();
+        }
+        function deleteTask(event) {
+            const button = event.target.closest('.delete-task-btn');
+            if (button) {
+                tasks.splice(button.dataset.index, 1); renderTasks();
+                showMessage("タスク削除", 1000);
+            }
+        }
+        function saveTasksToLocalStorage() { localStorage.setItem('focusAppTasks_edge', JSON.stringify(tasks)); }
+        function loadTasksFromLocalStorage() {
+            const storedTasks = localStorage.getItem('focusAppTasks_edge');
+            if (storedTasks) { tasks = JSON.parse(storedTasks); renderTasks(); }
+        }
+
+        function updatePomodoroDisplay() {
+            const minutes = String(Math.floor(pomodoroTime / 60)).padStart(2, '0');
+            const seconds = String(pomodoroTime % 60).padStart(2, '0');
+            pomodoroDisplay.textContent = `${minutes}:${seconds}`;
+            document.title = `${minutes}:${seconds} - ${currentPomodoroMode === 'work' ? '集中' : '休憩'}`;
+        }
+        function startPomodoroTimer() {
+            if (isPomodoroRunning) return;
+            isPomodoroRunning = true; startPomodoroBtn.disabled = true; pausePomodoroBtn.disabled = false;
+            initializeToneAudio().then(() => {
+                if (synth) synth.triggerAttackRelease("C4", "8n", Tone.now() + 0.1);
+            });
+            pomodoroTimerInterval = setInterval(() => {
+                pomodoroTime--; updatePomodoroDisplay();
+                if (pomodoroTime < 0) {
+                    clearInterval(pomodoroTimerInterval); isPomodoroRunning = false;
+                     if (synth) synth.triggerAttackRelease("G4", "4n", Tone.now() + 0.1);
+                    const message = currentPomodoroMode === 'work' ? "集中終了！休憩へ" : "休憩終了！作業開始";
+                    showMessage(message, 4000);
+                    currentPomodoroMode = currentPomodoroMode === 'work' ? 'break' : 'work';
+                    pomodoroTime = currentPomodoroMode === 'work' ? workDuration : breakDuration;
+                    pomodoroDisplay.style.color = currentPomodoroMode === 'work' ? '#9ece6a' : '#ff9e64';
+                    updatePomodoroDisplay();
+                    startPomodoroBtn.disabled = false; startPomodoroBtn.textContent = "開始"; pausePomodoroBtn.disabled = true;
+                }
+            }, 1000);
+        }
+        function pausePomodoroTimer() {
+            if (!isPomodoroRunning) return;
+            isPomodoroRunning = false; clearInterval(pomodoroTimerInterval);
+            startPomodoroBtn.disabled = false; startPomodoroBtn.textContent = "再開"; pausePomodoroBtn.disabled = true;
+        }
+        function resetPomodoroTimer() {
+            clearInterval(pomodoroTimerInterval); isPomodoroRunning = false;
+            currentPomodoroMode = 'work'; pomodoroTime = workDuration; updatePomodoroDisplay();
+            startPomodoroBtn.disabled = false; startPomodoroBtn.textContent = "開始"; pausePomodoroBtn.disabled = true;
+            pomodoroDisplay.style.color = '#9ece6a'; document.title = "集中アプリ";
+        }
+        startPomodoroBtn.addEventListener('click', startPomodoroTimer);
+        pausePomodoroBtn.addEventListener('click', pausePomodoroTimer);
+        resetPomodoroBtn.addEventListener('click', resetPomodoroTimer);
+
+        window.addEventListener('load', () => {
+            updateClock();
+            loadTasksFromLocalStorage();
+            updatePomodoroDisplay();
+            loadYouTubeAPI();
+            showMessage("右下の歯車アイコンから背景動画を設定できます。", 4000);
+        });
+    </script>
+</body>
+</html>
