@@ -535,6 +535,54 @@
             font-size: 2rem;
             margin: 0;
         }
+
+        .confirmation-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .confirm-btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-yes {
+            background-color: #7aa2f7;
+            color: #1a1b26;
+        }
+
+        .confirm-yes:hover {
+            background-color: #567efb;
+            transform: translateY(-1px);
+        }
+
+        .confirm-no {
+            background-color: #3b4261;
+            color: #a9b1d6;
+        }
+
+        .confirm-no:hover {
+            background-color: #4a5270;
+            transform: translateY(-1px);
+        }
+
+        #confirmation-dialog {
+            background-color: rgba(31, 35, 53, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -628,6 +676,16 @@
 
     <div id="message-box-container"></div>
 
+    <div id="confirmation-dialog" class="fixed-card" style="display: none; z-index: 1000; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <div class="confirmation-content">
+            <h3 id="confirmation-title" class="text-lg mb-4"></h3>
+            <div class="confirmation-buttons">
+                <button id="confirm-yes" class="confirm-btn confirm-yes">はい</button>
+                <button id="confirm-no" class="confirm-btn confirm-no">いいえ</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- DOM Elements ---
         const clockElement = document.getElementById('clock');
@@ -682,6 +740,8 @@
         let toneSequence;
 
         let isPomodoroCollapsed = false;
+
+        let confirmationCallback = null;
 
         // --- Utility Functions ---
         function showMessage(message, duration = 2500) {
@@ -1008,12 +1068,41 @@
             const seconds = String(pomodoroTime % 60).padStart(2, '0');
             pomodoroDisplay.textContent = `${minutes}:${seconds}`;
             
-            const modeText = isLongBreak ? '長い休憩' : '短い休憩';
+            const modeText = isBreak ? (isLongBreak ? '長い休憩' : '短い休憩') : '作業中';
             document.getElementById('mode-indicator').textContent = modeText;
-            document.getElementById('mode-indicator').style.color = isLongBreak ? '#ff9e64' : '#9ece6a';
+            document.getElementById('mode-indicator').style.color = isBreak ? '#ff9e64' : '#9ece6a';
             
             document.title = `${minutes}:${seconds} - ${modeText}`;
         }
+
+        function showConfirmationDialog(title, callback) {
+            const dialog = document.getElementById('confirmation-dialog');
+            const titleElement = document.getElementById('confirmation-title');
+            
+            titleElement.textContent = title;
+            dialog.style.display = 'block';
+            confirmationCallback = callback;
+        }
+
+        function hideConfirmationDialog() {
+            const dialog = document.getElementById('confirmation-dialog');
+            dialog.style.display = 'none';
+            confirmationCallback = null;
+        }
+
+        document.getElementById('confirm-yes').addEventListener('click', () => {
+            if (confirmationCallback) {
+                confirmationCallback(true);
+            }
+            hideConfirmationDialog();
+        });
+
+        document.getElementById('confirm-no').addEventListener('click', () => {
+            if (confirmationCallback) {
+                confirmationCallback(false);
+            }
+            hideConfirmationDialog();
+        });
 
         function startPomodoroTimer() {
             if (isPomodoroRunning) return;
@@ -1041,23 +1130,72 @@
                     
                     if (synth) synth.triggerAttackRelease("G4", "4n", Tone.now() + 0.1);
                     
-                    isLongBreak = !isLongBreak;
-                    if (!isLongBreak) {
+                    isBreak = !isBreak;
+                    if (!isBreak) {
                         sessionCount++;
                         document.getElementById('session-count').textContent = `セッション: ${sessionCount}`;
                         
-                        pomodoroTime = isLongBreak ? longBreakDuration : shortBreakDuration;
-                        totalTime = pomodoroTime;
-                        elapsedTime = 0;
-                        updatePomodoroDisplay();
-                        
-                        startPomodoroBtn.disabled = false;
-                        pausePomodoroBtn.disabled = true;
-                        
-                        if (Notification.permission === "granted") {
-                            new Notification(isLongBreak ? "長い休憩時間です" : "短い休憩時間です");
-                        }
+                        // 長い休憩の判定
+                        isLongBreak = sessionCount % sessionsBeforeLongBreak === 0;
                     }
+                    
+                    // 次のセッションの時間を設定
+                    pomodoroTime = isBreak ? (isLongBreak ? longBreakDuration : shortBreakDuration) : workDuration;
+                    totalTime = pomodoroTime;
+                    elapsedTime = 0;
+                    
+                    // 表示を更新
+                    updatePomodoroDisplay();
+                    updateProgressBar();
+                    
+                    // ボタンの状態を更新
+                    startPomodoroBtn.disabled = false;
+                    pausePomodoroBtn.disabled = true;
+                    
+                    // 通知を表示
+                    if (Notification.permission === "granted") {
+                        const message = isBreak 
+                            ? (isLongBreak ? "お疲れ様でした！長い休憩を始めましょう" : "お疲れ様でした！短い休憩を始めましょう")
+                            : "休憩終了！作業を再開しましょう";
+                        new Notification(message);
+                    }
+                    
+                    // メッセージを表示
+                    const message = isBreak 
+                        ? (isLongBreak ? "長い休憩を始めましょう" : "短い休憩を始めましょう")
+                        : "作業を再開しましょう";
+                    showMessage(message, 3000);
+                    
+                    // セッション切り替えの確認
+                    const breakType = isBreak ? (isLongBreak ? "長い休憩" : "短い休憩") : "作業";
+                    const duration = isBreak 
+                        ? (isLongBreak ? longBreakDuration / 60 : shortBreakDuration / 60)
+                        : workDuration / 60;
+                    const confirmMessage = `${breakType}（${duration}分）を始めますか？`;
+                    
+                    showConfirmationDialog(confirmMessage, (confirmed) => {
+                        if (confirmed) {
+                            // 確認された場合、1秒後に次のセッションを開始
+                            setTimeout(() => {
+                                if (!isPomodoroRunning) {
+                                    startPomodoroTimer();
+                                }
+                            }, 1000);
+                        } else {
+                            // キャンセルされた場合、現在のモードを維持
+                            if (isBreak) {
+                                isBreak = false;
+                                pomodoroTime = workDuration;
+                                totalTime = workDuration;
+                            } else {
+                                isBreak = true;
+                                pomodoroTime = isLongBreak ? longBreakDuration : shortBreakDuration;
+                                totalTime = pomodoroTime;
+                            }
+                            updatePomodoroDisplay();
+                            updateProgressBar();
+                        }
+                    });
                 }
             }, 1000);
         }
@@ -1067,10 +1205,21 @@
             startPomodoroBtn.disabled = false; startPomodoroBtn.textContent = "再開"; pausePomodoroBtn.disabled = true;
         }
         function resetPomodoroTimer() {
-            clearInterval(pomodoroTimerInterval); isPomodoroRunning = false;
-            pomodoroTime = workDuration; updatePomodoroDisplay();
-            startPomodoroBtn.disabled = false; startPomodoroBtn.textContent = "開始"; pausePomodoroBtn.disabled = true;
-            pomodoroDisplay.style.color = '#9ece6a'; document.title = "集中アプリ";
+            clearInterval(pomodoroTimerInterval);
+            isPomodoroRunning = false;
+            isBreak = false;
+            isLongBreak = false;
+            pomodoroTime = workDuration;
+            totalTime = workDuration;
+            elapsedTime = 0;
+            sessionCount = 0;
+            document.getElementById('session-count').textContent = `セッション: ${sessionCount}`;
+            updatePomodoroDisplay();
+            updateProgressBar();
+            startPomodoroBtn.disabled = false;
+            pausePomodoroBtn.disabled = true;
+            document.title = "集中アプリ";
+            showMessage("タイマーをリセットしました", 2000);
         }
         startPomodoroBtn.addEventListener('click', startPomodoroTimer);
         pausePomodoroBtn.addEventListener('click', pausePomodoroTimer);
