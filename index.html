@@ -415,6 +415,78 @@
             width: 100%; /* Ensure it takes full width for centering */
         }
         #video-controls-container .card-title { display: none; }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background-color: #3b4261;
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background-color: #7aa2f7;
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #a9b1d6;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a9b1d6;
+        }
+
+        .setting-item input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #3b4261;
+            background-color: rgba(41, 46, 66, 0.8);
+            color: #c0caf5;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #session-info {
+            display: flex;
+            justify-content: space-between;
+            color: #a9b1d6;
+            font-size: 0.8rem;
+        }
+
+        #mode-indicator {
+            color: #9ece6a;
+        }
     </style>
 </head>
 <body>
@@ -448,14 +520,47 @@
     </div>
 
     <div id="pomodoro-container" class="fixed-card">
-        <h2 class="card-title">Pomodoro</h2>
         <div id="pomodoro-timer" class="text-center">
             <div id="pomodoro-display">25:00</div>
-            <div class="pomodoro-buttons">
-                <button id="start-pomodoro">開始</button>
-                <button id="pause-pomodoro" disabled>一時停止</button>
-                <button id="reset-pomodoro">リセット</button>
+            <div class="progress-container">
+                <div id="progress-bar"></div>
             </div>
+            <div class="pomodoro-buttons">
+                <button id="start-pomodoro" class="pomodoro-btn" title="開始 (Space)"><i class="fas fa-play"></i></button>
+                <button id="pause-pomodoro" class="pomodoro-btn" disabled title="一時停止 (Space)"><i class="fas fa-pause"></i></button>
+                <button id="reset-pomodoro" class="pomodoro-btn" title="リセット (R)"><i class="fas fa-redo"></i></button>
+                <button id="settings-pomodoro" class="pomodoro-btn" title="設定 (S)"><i class="fas fa-cog"></i></button>
+            </div>
+            <div id="session-info" class="text-sm mt-2">
+                <span id="session-count">セッション: 0</span>
+                <span id="mode-indicator">作業中</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="pomodoro-settings" class="fixed-card" style="display: none;">
+        <div class="settings-header">
+            <h3>時間設定</h3>
+            <button id="close-settings" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>作業時間 (分)</label>
+                <input type="number" id="work-time" min="1" max="60" value="25">
+            </div>
+            <div class="setting-item">
+                <label>短い休憩 (分)</label>
+                <input type="number" id="short-break-time" min="1" max="30" value="5">
+            </div>
+            <div class="setting-item">
+                <label>長い休憩 (分)</label>
+                <input type="number" id="long-break-time" min="1" max="60" value="15">
+            </div>
+            <div class="setting-item">
+                <label>長い休憩までのセッション数</label>
+                <input type="number" id="sessions-before-long-break" min="1" max="10" value="4">
+            </div>
+            <button id="save-settings" class="save-btn">保存</button>
         </div>
     </div>
 
@@ -507,7 +612,12 @@
         let isPomodoroRunning = false;
         let currentPomodoroMode = 'work';
         let workDuration = 25 * 60;
-        let breakDuration = 5 * 60;
+        let shortBreakDuration = 5 * 60;
+        let longBreakDuration = 15 * 60;
+        let sessionsBeforeLongBreak = 4;
+        let isLongBreak = false;
+        let totalTime = workDuration;
+        let elapsedTime = 0;
 
         let synth = null;
         const toneTracks = [
@@ -833,30 +943,66 @@
             if (storedTasks) { tasks = JSON.parse(storedTasks); renderTasks(); }
         }
 
+        function updateProgressBar() {
+            const progress = (elapsedTime / totalTime) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
         function updatePomodoroDisplay() {
             const minutes = String(Math.floor(pomodoroTime / 60)).padStart(2, '0');
             const seconds = String(pomodoroTime % 60).padStart(2, '0');
             pomodoroDisplay.textContent = `${minutes}:${seconds}`;
-            document.title = `${minutes}:${seconds} - ${currentPomodoroMode === 'work' ? '集中' : '休憩'}`;
+            
+            const modeText = isLongBreak ? '長い休憩' : '短い休憩';
+            document.getElementById('mode-indicator').textContent = modeText;
+            document.getElementById('mode-indicator').style.color = isLongBreak ? '#ff9e64' : '#9ece6a';
+            
+            document.title = `${minutes}:${seconds} - ${modeText}`;
         }
+
         function startPomodoroTimer() {
             if (isPomodoroRunning) return;
-            isPomodoroRunning = true; startPomodoroBtn.disabled = true; pausePomodoroBtn.disabled = false;
+            isPomodoroRunning = true;
+            startPomodoroBtn.disabled = true;
+            pausePomodoroBtn.disabled = false;
+            
+            totalTime = pomodoroTime;
+            elapsedTime = 0;
+            updateProgressBar();
+            
             initializeToneAudio().then(() => {
                 if (synth) synth.triggerAttackRelease("C4", "8n", Tone.now() + 0.1);
             });
+
             pomodoroTimerInterval = setInterval(() => {
-                pomodoroTime--; updatePomodoroDisplay();
+                pomodoroTime--;
+                elapsedTime++;
+                updatePomodoroDisplay();
+                updateProgressBar();
+                
                 if (pomodoroTime < 0) {
-                    clearInterval(pomodoroTimerInterval); isPomodoroRunning = false;
-                     if (synth) synth.triggerAttackRelease("G4", "4n", Tone.now() + 0.1);
-                    const message = currentPomodoroMode === 'work' ? "集中終了！休憩へ" : "休憩終了！作業開始";
-                    showMessage(message, 4000);
-                    currentPomodoroMode = currentPomodoroMode === 'work' ? 'break' : 'work';
-                    pomodoroTime = currentPomodoroMode === 'work' ? workDuration : breakDuration;
-                    pomodoroDisplay.style.color = currentPomodoroMode === 'work' ? '#9ece6a' : '#ff9e64';
-                    updatePomodoroDisplay();
-                    startPomodoroBtn.disabled = false; startPomodoroBtn.textContent = "開始"; pausePomodoroBtn.disabled = true;
+                    clearInterval(pomodoroTimerInterval);
+                    isPomodoroRunning = false;
+                    
+                    if (synth) synth.triggerAttackRelease("G4", "4n", Tone.now() + 0.1);
+                    
+                    isLongBreak = !isLongBreak;
+                    if (!isLongBreak) {
+                        sessionCount++;
+                        document.getElementById('session-count').textContent = `セッション: ${sessionCount}`;
+                        
+                        pomodoroTime = isLongBreak ? longBreakDuration : shortBreakDuration;
+                        totalTime = pomodoroTime;
+                        elapsedTime = 0;
+                        updatePomodoroDisplay();
+                        
+                        startPomodoroBtn.disabled = false;
+                        pausePomodoroBtn.disabled = true;
+                        
+                        if (Notification.permission === "granted") {
+                            new Notification(isLongBreak ? "長い休憩時間です" : "短い休憩時間です");
+                        }
+                    }
                 }
             }, 1000);
         }
@@ -867,7 +1013,7 @@
         }
         function resetPomodoroTimer() {
             clearInterval(pomodoroTimerInterval); isPomodoroRunning = false;
-            currentPomodoroMode = 'work'; pomodoroTime = workDuration; updatePomodoroDisplay();
+            pomodoroTime = workDuration; updatePomodoroDisplay();
             startPomodoroBtn.disabled = false; startPomodoroBtn.textContent = "開始"; pausePomodoroBtn.disabled = true;
             pomodoroDisplay.style.color = '#9ece6a'; document.title = "集中アプリ";
         }
@@ -875,12 +1021,82 @@
         pausePomodoroBtn.addEventListener('click', pausePomodoroTimer);
         resetPomodoroBtn.addEventListener('click', resetPomodoroTimer);
 
+        let sessionCount = 0;
+        let isBreak = false;
+
+        function saveSettings() {
+            const settings = {
+                workTime: parseInt(document.getElementById('work-time').value),
+                shortBreakTime: parseInt(document.getElementById('short-break-time').value),
+                longBreakTime: parseInt(document.getElementById('long-break-time').value),
+                sessionsBeforeLongBreak: parseInt(document.getElementById('sessions-before-long-break').value)
+            };
+            
+            localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+            
+            workDuration = settings.workTime * 60;
+            shortBreakDuration = settings.shortBreakTime * 60;
+            longBreakDuration = settings.longBreakTime * 60;
+            sessionsBeforeLongBreak = settings.sessionsBeforeLongBreak;
+            
+            if (!isPomodoroRunning) {
+                pomodoroTime = workDuration;
+                updatePomodoroDisplay();
+            }
+            
+            document.getElementById('pomodoro-settings').style.display = 'none';
+            showMessage("設定を保存しました");
+        }
+
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('pomodoroSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                document.getElementById('work-time').value = settings.workTime;
+                document.getElementById('short-break-time').value = settings.shortBreakTime;
+                document.getElementById('long-break-time').value = settings.longBreakTime;
+                document.getElementById('sessions-before-long-break').value = settings.sessionsBeforeLongBreak;
+                
+                workDuration = settings.workTime * 60;
+                shortBreakDuration = settings.shortBreakTime * 60;
+                longBreakDuration = settings.longBreakTime * 60;
+                sessionsBeforeLongBreak = settings.sessionsBeforeLongBreak;
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                if (isPomodoroRunning) {
+                    pausePomodoroTimer();
+                } else {
+                    startPomodoroTimer();
+                }
+            } else if (e.code === 'KeyR') {
+                resetPomodoroTimer();
+            } else if (e.code === 'KeyS') {
+                document.getElementById('pomodoro-settings').style.display = 
+                    document.getElementById('pomodoro-settings').style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        document.getElementById('settings-pomodoro').addEventListener('click', () => {
+            document.getElementById('pomodoro-settings').style.display = 'block';
+        });
+
+        document.getElementById('close-settings').addEventListener('click', () => {
+            document.getElementById('pomodoro-settings').style.display = 'none';
+        });
+
+        document.getElementById('save-settings').addEventListener('click', saveSettings);
+
         window.addEventListener('load', () => {
             updateClock();
             loadTasksFromLocalStorage();
             updatePomodoroDisplay();
             loadYouTubeAPI();
             showMessage("右下の歯車アイコンから背景動画を設定できます。", 4000);
+            loadSettings();
         });
     </script>
 </body>
