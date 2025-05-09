@@ -1130,8 +1130,10 @@
             if (savedVideoId) {
                 loadYouTubeVideo(savedVideoId, savedVolume ? parseInt(savedVolume) : 50);
             } else {
-                videoStatusDisplay.textContent = "背景動画: 未設定";
-                updateVolumeControlsUI(50, true); // Default UI state for volume
+                // デフォルトの動画IDを設定
+                const defaultVideoId = 'X9IOZ4trc2U';
+                loadYouTubeVideo(defaultVideoId, savedVolume ? parseInt(savedVolume) : 50);
+                localStorage.setItem('youtubeBgVideoId', defaultVideoId);
             }
         }
 
@@ -1281,16 +1283,13 @@
                     showMessage("無効なYouTube URLまたは動画IDです。", 3000);
                 }
             } else {
-                localStorage.removeItem('youtubeBgVideoId');
-                if (ytPlayer && typeof ytPlayer.destroy === 'function') {
-                    ytPlayer.destroy(); ytPlayer = null;
-                }
-                document.getElementById('youtube-player-background').innerHTML = '';
-                videoStatusDisplay.textContent = "背景動画: 未設定";
-                playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
-                isYouTubeVideoPlaying = false;
-                updateVolumeControlsUI(currentVolume, true);
-                showMessage("背景動画をクリアしました。", 2000);
+                // デフォルトの動画IDを設定
+                const defaultVideoId = 'X9IOZ4trc2U';
+                loadYouTubeVideo(defaultVideoId, currentVolume);
+                localStorage.setItem('youtubeBgVideoId', defaultVideoId);
+                youtubeUrlInput.value = '';
+                youtubeSettingsPanel.style.display = 'none';
+                showMessage("デフォルトの背景動画を設定しました。", 2000);
             }
         });
 
