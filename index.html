@@ -244,7 +244,31 @@
             transform: rotate(30deg);
         }
 
-        #youtube-settings-panel {
+        #sound-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 100px;
+            width: 44px;
+            height: 44px;
+            background-color: rgba(31, 35, 53, 0.9);
+            color: #7aa2f7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 20;
+            transition: all 0.3s ease;
+        }
+
+        #sound-icon:hover {
+            background-color: rgba(45, 50, 70, 0.95);
+            transform: rotate(30deg);
+        }
+
+        #sound-settings-panel {
             display: none;
             position: fixed;
             bottom: 80px;
@@ -583,6 +607,92 @@
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
+
+        /* サウンド設定パネルのスタイル */
+        .sound-settings-content {
+            padding: 10px 0;
+        }
+
+        .sound-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(41, 46, 66, 0.5);
+            border-radius: 8px;
+        }
+
+        .sound-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .sound-toggle {
+            appearance: none;
+            width: 40px;
+            height: 20px;
+            background-color: #3b4261;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .sound-toggle:checked {
+            background-color: #7aa2f7;
+        }
+
+        .sound-toggle::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #c0caf5;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .sound-toggle:checked::before {
+            transform: translateX(20px);
+        }
+
+        .sound-name {
+            color: #a9b1d6;
+            font-size: 0.9rem;
+        }
+
+        .sound-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sound-volume {
+            flex-grow: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #3b4261;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .sound-volume::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #7aa2f7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-value {
+            color: #a9b1d6;
+            font-size: 0.8rem;
+            min-width: 40px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -668,6 +778,53 @@
     <div id="settings-icon" title="背景設定">
         <i class="fas fa-cog"></i>
     </div>
+    <div id="sound-icon" title="サウンド設定">
+        <i class="fas fa-volume-up"></i>
+    </div>
+    <div id="sound-settings-panel" class="fixed-card" style="display: none; margin:0;">
+        <div class="settings-header">
+            <h3>サウンド設定</h3>
+            <button id="close-sound-settings" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sound-settings-content">
+            <div class="sound-item">
+                <div class="sound-header">
+                    <label>
+                        <input type="checkbox" id="rain-sound-toggle" class="sound-toggle">
+                        <span class="sound-name">雨の音</span>
+                    </label>
+                </div>
+                <div class="sound-controls">
+                    <input type="range" id="rain-volume" class="sound-volume" min="0" max="100" value="50">
+                    <span class="volume-value">50%</span>
+                </div>
+            </div>
+            <div class="sound-item">
+                <div class="sound-header">
+                    <label>
+                        <input type="checkbox" id="keyboard-sound-toggle" class="sound-toggle">
+                        <span class="sound-name">キーボード音</span>
+                    </label>
+                </div>
+                <div class="sound-controls">
+                    <input type="range" id="keyboard-volume" class="sound-volume" min="0" max="100" value="50">
+                    <span class="volume-value">50%</span>
+                </div>
+            </div>
+            <div class="sound-item">
+                <div class="sound-header">
+                    <label>
+                        <input type="checkbox" id="whitenoise-sound-toggle" class="sound-toggle">
+                        <span class="sound-name">ホワイトノイズ</span>
+                    </label>
+                </div>
+                <div class="sound-controls">
+                    <input type="range" id="whitenoise-volume" class="sound-volume" min="0" max="100" value="50">
+                    <span class="volume-value">50%</span>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="youtube-settings-panel" class="fixed-card" style="margin:0;">
         <label for="youtube-url-input">YouTube 動画 URL:</label>
         <input type="text" id="youtube-url-input" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
@@ -710,6 +867,7 @@
         const messageBoxContainer = document.getElementById('message-box-container');
 
         const settingsIcon = document.getElementById('settings-icon');
+        const soundIcon = document.getElementById('sound-icon');
         const youtubeSettingsPanel = document.getElementById('youtube-settings-panel');
         const youtubeUrlInput = document.getElementById('youtube-url-input');
         const setYoutubeBgBtn = document.getElementById('set-youtube-bg-btn');
@@ -742,6 +900,104 @@
         let isPomodoroCollapsed = false;
 
         let confirmationCallback = null;
+
+        // サウンド関連の変数
+        let rainSound, keyboardSound, whiteNoiseSound;
+        let audioContext;
+        let rainPlayer;
+        let keyboardPlayer;
+
+        // サウンドの初期化
+        async function initializeAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 雨の音の生成
+                rainPlayer = new Tone.Player("Sounds/rain.mp3").toDestination();
+                rainPlayer.loop = true;
+                rainPlayer.volume.value = -10;
+
+                // キーボード音の生成
+                keyboardPlayer = new Tone.Player("Sounds/PC-Keyboard06-01(Mid).mp3").toDestination();
+                keyboardPlayer.loop = true;
+                keyboardPlayer.volume.value = -20;
+
+                // ホワイトノイズの生成
+                whiteNoiseSound = audioContext.createGain();
+                whiteNoiseSound.gain.value = 0;
+                const bufferSize = audioContext.sampleRate * 2;
+                const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+                const whiteNoise = audioContext.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+                whiteNoise.connect(whiteNoiseSound);
+                whiteNoiseSound.connect(audioContext.destination);
+                whiteNoise.start();
+
+                // トグルスイッチのイベントリスナー
+                document.getElementById('rain-sound-toggle').addEventListener('change', (e) => {
+                    if (Tone.context.state !== 'running') {
+                        Tone.start();
+                    }
+                    if (e.target.checked) {
+                        rainPlayer.start();
+                    } else {
+                        rainPlayer.stop();
+                    }
+                });
+
+                document.getElementById('keyboard-sound-toggle').addEventListener('change', (e) => {
+                    if (Tone.context.state !== 'running') {
+                        Tone.start();
+                    }
+                    if (e.target.checked) {
+                        keyboardPlayer.start();
+                    } else {
+                        keyboardPlayer.stop();
+                    }
+                });
+
+                document.getElementById('rain-volume').addEventListener('input', (e) => {
+                    const volume = e.target.value / 100;
+                    rainPlayer.volume.value = (volume * 100) - 100; // -100 to 0 dB range
+                    e.target.nextElementSibling.textContent = `${e.target.value}%`;
+                });
+
+                document.getElementById('keyboard-volume').addEventListener('input', (e) => {
+                    const volume = e.target.value / 100;
+                    keyboardPlayer.volume.value = (volume * 100) - 100; // -100 to 0 dB range
+                    e.target.nextElementSibling.textContent = `${e.target.value}%`;
+                });
+
+                document.getElementById('whitenoise-volume').addEventListener('input', (e) => {
+                    const volume = e.target.value / 100;
+                    whiteNoiseSound.gain.value = volume;
+                    e.target.nextElementSibling.textContent = `${e.target.value}%`;
+                });
+
+            } catch (error) {
+                console.error('Audio initialization failed:', error);
+                showMessage('サウンドの初期化に失敗しました', 3000);
+            }
+        }
+
+        // サウンド設定パネルの閉じるボタン
+        document.getElementById('close-sound-settings').addEventListener('click', () => {
+            document.getElementById('sound-settings-panel').style.display = 'none';
+        });
+
+        // キーボード入力時のサウンド再生
+        document.addEventListener('keydown', (e) => {
+            if (keyboardSound && document.getElementById('keyboard-sound-toggle').checked) {
+                const volume = document.getElementById('keyboard-volume').value / 100;
+                keyboardSound.gain.setValueAtTime(volume, audioContext.currentTime);
+                keyboardSound.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+            }
+        });
 
         // --- Utility Functions ---
         function showMessage(message, duration = 2500) {
@@ -906,6 +1162,10 @@
 
         settingsIcon.addEventListener('click', () => {
             youtubeSettingsPanel.style.display = youtubeSettingsPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        soundIcon.addEventListener('click', () => {
+            document.getElementById('sound-settings-panel').style.display = document.getElementById('sound-settings-panel').style.display === 'none' ? 'block' : 'none';
         });
 
         setYoutubeBgBtn.addEventListener('click', () => {
@@ -1322,6 +1582,7 @@
             if (savedCollapsed === 'true') {
                 togglePomodoro();
             }
+            initializeAudio(); // サウンドの初期化を追加
         });
     </script>
 </body>
