@@ -74,6 +74,74 @@
             flex-direction: column;
         }
 
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-right: 40px;
+            position: relative;
+            height: 40px;
+        }
+
+        .tasks-title {
+            font-weight: 600;
+            color: #a9b1d6;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .tasks-toggle-btn {
+            background: none;
+            border: none;
+            color: #a9b1d6;
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.3s ease;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 12;
+        }
+
+        .tasks-toggle-btn:hover {
+            color: #7aa2f7;
+        }
+
+        .tasks-toggle-btn.rotated {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .tasks-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+            height: auto;
+            margin-top: 40px; /* ヘッダーの高さ分のマージンを追加 */
+        }
+
+        .tasks-content.collapsed {
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        #tasks-container.collapsed {
+            padding: 8px 16px;
+        }
+
+        #tasks-container.collapsed .tasks-title {
+            display: none;
+        }
+
+        #tasks-container.collapsed #add-task-float-btn {
+            display: none;
+        }
+
+        #tasks-container.collapsed .tasks-content {
+            margin-top: 0;
+        }
+
         .card-title {
             font-weight: 600;
             color: #a9b1d6;
@@ -87,7 +155,7 @@
         #add-task-float-btn {
             position: absolute;
             top: 12px;
-            right: 12px;
+            right: 50px;
             width: 36px;
             height: 36px;
             background-color: #7aa2f7;
@@ -703,13 +771,18 @@
     </div>
 
     <div id="tasks-container" class="fixed-card">
-        <button id="add-task-float-btn" title="新しいタスクを追加"><i class="fas fa-plus"></i></button>
-        <h2 class="card-title">Tasks</h2>
-        <div id="new-task-input-field">
-            <input type="text" id="task-input-actual" placeholder="タスク内容...">
-            <button id="add-task-confirm-btn">追加</button>
+        <div class="tasks-header">
+            <h2 class="tasks-title">Tasks</h2>
+            <button id="toggle-tasks" class="tasks-toggle-btn" title="折りたたみ"><i class="fas fa-chevron-up"></i></button>
         </div>
-        <ul id="task-list"></ul>
+        <div class="tasks-content">
+            <button id="add-task-float-btn" title="新しいタスクを追加"><i class="fas fa-plus"></i></button>
+            <div id="new-task-input-field">
+                <input type="text" id="task-input-actual" placeholder="タスク内容...">
+                <button id="add-task-confirm-btn">追加</button>
+            </div>
+            <ul id="task-list"></ul>
+        </div>
     </div>
 
     <div id="video-controls-container" class="fixed-card">
@@ -898,6 +971,7 @@
         let toneSequence;
 
         let isPomodoroCollapsed = false;
+        let isTasksCollapsed = false;
 
         let confirmationCallback = null;
 
@@ -1586,6 +1660,23 @@
         // イベントリスナーの追加
         document.getElementById('toggle-pomodoro').addEventListener('click', togglePomodoro);
 
+        function toggleTasks() {
+            const content = document.querySelector('.tasks-content');
+            const container = document.getElementById('tasks-container');
+            const toggleBtn = document.getElementById('toggle-tasks');
+            
+            isTasksCollapsed = !isTasksCollapsed;
+            content.classList.toggle('collapsed');
+            container.classList.toggle('collapsed');
+            toggleBtn.classList.toggle('rotated');
+            
+            // 状態を保存
+            localStorage.setItem('tasksCollapsed', isTasksCollapsed);
+        }
+
+        // イベントリスナーの追加
+        document.getElementById('toggle-tasks').addEventListener('click', toggleTasks);
+
         window.addEventListener('load', () => {
             updateClock();
             loadTasksFromLocalStorage();
@@ -1597,7 +1688,11 @@
             if (savedCollapsed === 'true') {
                 togglePomodoro();
             }
-            initializeAudio(); // サウンドの初期化を追加
+            const savedTasksCollapsed = localStorage.getItem('tasksCollapsed');
+            if (savedTasksCollapsed === 'true') {
+                toggleTasks();
+            }
+            initializeAudio();
         });
     </script>
 </body>
