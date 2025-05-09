@@ -906,6 +906,7 @@
         let audioContext;
         let rainPlayer;
         let keyboardPlayer;
+        let noiseNode;
 
         // サウンドの初期化
         async function initializeAudio() {
@@ -923,8 +924,8 @@
                 keyboardPlayer.volume.value = -20;
 
                 // ホワイトノイズの生成
-                whiteNoiseSound = audioContext.createGain();
-                whiteNoiseSound.gain.value = 0;
+                noiseNode = audioContext.createGain();
+                noiseNode.gain.value = 0;
                 const bufferSize = audioContext.sampleRate * 2;
                 const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
                 const output = noiseBuffer.getChannelData(0);
@@ -934,9 +935,13 @@
                 const whiteNoise = audioContext.createBufferSource();
                 whiteNoise.buffer = noiseBuffer;
                 whiteNoise.loop = true;
-                whiteNoise.connect(whiteNoiseSound);
-                whiteNoiseSound.connect(audioContext.destination);
+                whiteNoise.connect(noiseNode);
+                noiseNode.connect(audioContext.destination);
                 whiteNoise.start();
+
+                // デフォルトの音量を設定
+                document.getElementById('whitenoise-volume').value = 50; // デフォルトを50%に設定
+                document.getElementById('whitenoise-volume').nextElementSibling.textContent = '50%';
 
                 // トグルスイッチのイベントリスナー
                 document.getElementById('rain-sound-toggle').addEventListener('change', (e) => {
@@ -961,6 +966,14 @@
                     }
                 });
 
+                document.getElementById('whitenoise-sound-toggle').addEventListener('change', (e) => {
+                    if (audioContext.state !== 'running') {
+                        audioContext.resume();
+                    }
+                    const volume = e.target.checked ? document.getElementById('whitenoise-volume').value / 100 * 0.1 : 0;
+                    noiseNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                });
+
                 document.getElementById('rain-volume').addEventListener('input', (e) => {
                     const volume = e.target.value / 100;
                     rainPlayer.volume.value = (volume * 100) - 100; // -100 to 0 dB range
@@ -974,8 +987,10 @@
                 });
 
                 document.getElementById('whitenoise-volume').addEventListener('input', (e) => {
-                    const volume = e.target.value / 100;
-                    whiteNoiseSound.gain.value = volume;
+                    const volume = e.target.value / 100 * 0.1; // 最大音量を10%に制限
+                    if (document.getElementById('whitenoise-sound-toggle').checked) {
+                        noiseNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                    }
                     e.target.nextElementSibling.textContent = `${e.target.value}%`;
                 });
 
