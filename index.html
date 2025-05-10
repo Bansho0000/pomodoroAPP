@@ -511,10 +511,11 @@
         }
 
         #video-status-display {
+            display: none; /* 非表示にする */
             font-size: 0.8rem;
-            margin-top: 0px; /* Reduced margin as volume controls are below */
+            margin-top: 0px;
             text-align: center;
-            width: 100%; /* Ensure it takes full width for centering */
+            width: 100%;
         }
         #video-controls-container .card-title { display: none; }
 
@@ -771,6 +772,228 @@
             min-width: 40px;
             text-align: right;
         }
+
+        #youtube-settings-panel {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 300px;
+            background-color: rgba(45, 50, 70, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 19;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .saved-videos-container {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .saved-video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 5px;
+            background-color: rgba(41, 46, 66, 0.5);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .saved-video-item:hover {
+            background-color: rgba(41, 46, 66, 0.8);
+        }
+
+        .saved-video-name {
+            color: #a9b1d6;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .saved-video-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .saved-video-btn {
+            background: none;
+            border: none;
+            color: #7aa2f7;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .saved-video-btn:hover {
+            color: #567efb;
+            transform: scale(1.1);
+        }
+
+        .saved-video-btn.delete {
+            color: #f7768e;
+        }
+
+        .saved-video-btn.delete:hover {
+            color: #ff5370;
+        }
+
+        .save-video-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #video-name-input {
+            flex-grow: 1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #3b4261;
+            background-color: rgba(41, 46, 66, 0.8);
+            color: #c0caf5;
+            font-size: 0.9rem;
+        }
+
+        #video-name-input:focus {
+            outline: none;
+            border-color: #7aa2f7;
+            box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2);
+        }
+
+        #save-video-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #save-video-btn:hover {
+            background-color: #567efb;
+            transform: translateY(-1px);
+        }
+
+        .settings-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(59, 66, 97, 0.5);
+        }
+
+        .settings-tab {
+            padding: 8px 15px;
+            color: #a9b1d6;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .settings-tab.active {
+            color: #7aa2f7;
+            border-bottom-color: #7aa2f7;
+        }
+
+        .settings-tab:hover {
+            color: #7aa2f7;
+        }
+
+        .settings-content {
+            display: none;
+        }
+
+        .settings-content.active {
+            display: block;
+        }
+
+        #saved-videos-content {
+            padding: 10px 0;
+        }
+
+        .save-video-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(41, 46, 66, 0.5);
+            border-radius: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            color: #a9b1d6;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #3b4261;
+            background-color: rgba(41, 46, 66, 0.8);
+            color: #c0caf5;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #7aa2f7;
+            box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        #save-video-btn {
+            padding: 8px 15px;
+            border-radius: 6px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #save-video-btn:hover {
+            background-color: #567efb;
+            transform: translateY(-1px);
+        }
+
+        #clear-form-btn {
+            padding: 8px 15px;
+            border-radius: 6px;
+            background-color: #3b4261;
+            color: #a9b1d6;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #clear-form-btn:hover {
+            background-color: #4a5270;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -909,9 +1132,36 @@
         </div>
     </div>
     <div id="youtube-settings-panel" class="fixed-card" style="margin:0;">
-        <label for="youtube-url-input">YouTube 動画 URL:</label>
-        <input type="text" id="youtube-url-input" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
-        <button id="set-youtube-bg-btn">背景を設定</button>
+        <div class="settings-tabs">
+            <div class="settings-tab active" data-tab="quick-set">クイック設定</div>
+            <div class="settings-tab" data-tab="saved-videos">保存済み動画</div>
+        </div>
+        
+        <div class="settings-content active" id="quick-set-content">
+            <label for="youtube-url-input">YouTube 動画 URL:</label>
+            <input type="text" id="youtube-url-input" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
+            <button id="set-youtube-bg-btn">背景を設定</button>
+        </div>
+
+        <div class="settings-content" id="saved-videos-content">
+            <div class="save-video-form">
+                <div class="form-group">
+                    <label for="saved-video-url">YouTube 動画 URL:</label>
+                    <input type="text" id="saved-video-url" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
+                </div>
+                <div class="form-group">
+                    <label for="video-name-input">動画の名前:</label>
+                    <input type="text" id="video-name-input" placeholder="例: お気に入りの作業用BGM">
+                </div>
+                <div class="form-actions">
+                    <button id="clear-form-btn">クリア</button>
+                    <button id="save-video-btn">保存</button>
+                </div>
+            </div>
+            <div class="saved-videos-container" id="saved-videos-list">
+                <!-- 保存された動画のリストがここに表示されます -->
+            </div>
+        </div>
     </div>
 
     <div id="message-box-container"></div>
@@ -1126,24 +1376,28 @@
 
         window.onYouTubeIframeAPIReady = function() {
             const savedVideoId = localStorage.getItem('youtubeBgVideoId');
+            const savedPlaylistId = localStorage.getItem('youtubeBgPlaylistId');
             const savedVolume = localStorage.getItem('youtubeBgVolume');
-            if (savedVideoId) {
-                loadYouTubeVideo(savedVideoId, savedVolume ? parseInt(savedVolume) : 50);
+            
+            if (savedVideoId || savedPlaylistId) {
+                loadYouTubeVideo({ videoId: savedVideoId, playlistId: savedPlaylistId }, savedVolume ? parseInt(savedVolume) : 50);
             } else {
                 // デフォルトの動画IDを設定
                 const defaultVideoId = 'X9IOZ4trc2U';
-                loadYouTubeVideo(defaultVideoId, savedVolume ? parseInt(savedVolume) : 50);
+                loadYouTubeVideo({ videoId: defaultVideoId }, savedVolume ? parseInt(savedVolume) : 50);
                 localStorage.setItem('youtubeBgVideoId', defaultVideoId);
             }
         }
 
         function extractYouTubeVideoId(url) {
             let videoId = null;
+            let playlistId = null;
             try {
                 const urlObj = new URL(url);
                 // Standard YouTube watch URLs
                 if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.pathname === '/watch') {
                     videoId = urlObj.searchParams.get('v');
+                    playlistId = urlObj.searchParams.get('list');
                 } 
                 // Shortened youtu.be URLs
                 else if (urlObj.hostname === 'youtu.be') {
@@ -1152,18 +1406,26 @@
                 // Embed URLs
                 else if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.pathname.startsWith('/embed/')) {
                     videoId = urlObj.pathname.split('/embed/')[1].split('?')[0];
+                    playlistId = urlObj.searchParams.get('list');
+                }
+                // Playlist URLs
+                else if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.pathname.startsWith('/playlist')) {
+                    playlistId = urlObj.searchParams.get('list');
                 }
             } catch (e) {
                 // console.warn("URL parsing with new URL() failed, trying regex for:", url, e);
             }
             
             // Fallback regex if URL parsing failed or for plain IDs / other formats
-            if (!videoId) { 
-                const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/;
-                const match = url.match(regex);
-                if (match) videoId = match[1];
+            if (!videoId && !playlistId) { 
+                const videoRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/;
+                const playlistRegex = /[?&]list=([^&]+)/;
+                const videoMatch = url.match(videoRegex);
+                const playlistMatch = url.match(playlistRegex);
+                if (videoMatch) videoId = videoMatch[1];
+                if (playlistMatch) playlistId = playlistMatch[1];
             }
-            return videoId;
+            return { videoId, playlistId };
         }
         
         function updateVolumeControlsUI(volume, isMuted) {
@@ -1191,26 +1453,36 @@
 
             const playerVars = {
                 autoplay: 1, controls: 0, showinfo: 0, modestbranding: 1,
-                loop: 1, playlist: videoId, fs: 0, cc_load_policy: 0,
+                loop: 1, fs: 0, cc_load_policy: 0,
                 iv_load_policy: 3, autohide: 0, 
                 mute: 0, // Ensure sound is on by default
                 playsinline: 1
             };
 
+            // 再生リストがある場合は設定
+            if (videoId.playlistId) {
+                playerVars.listType = 'playlist';
+                playerVars.list = videoId.playlistId;
+            } else {
+                playerVars.playlist = videoId.videoId;
+            }
+
             if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-                ytPlayer.loadVideoById({videoId: videoId}); // Pass as object
-                // Volume and mute state will be set in onReady or preserved if player reloads
+                if (videoId.playlistId) {
+                    ytPlayer.loadPlaylist(videoId.playlistId);
+                } else {
+                    ytPlayer.loadVideoById({videoId: videoId.videoId});
+                }
             } else {
                 if (ytPlayer && typeof ytPlayer.destroy === 'function') { ytPlayer.destroy(); }
                 document.getElementById('youtube-player-background').innerHTML = '';
                 ytPlayer = new YT.Player('youtube-player-background', {
-                    videoId: videoId,
+                    videoId: videoId.videoId,
                     playerVars: playerVars,
                     events: {
                         'onReady': (event) => {
                             event.target.setVolume(initialVolume);
-                            // Unmute might not be needed if mute:0 is respected, but good to have
-                            if(event.target.isMuted()) { // Only unmute if it somehow started muted
+                            if(event.target.isMuted()) {
                                 event.target.unMute();
                             }
                             event.target.playVideo();
@@ -1232,8 +1504,10 @@
                     }
                 });
             }
-            localStorage.setItem('youtubeBgVideoId', videoId);
-            // Initial volume is set in onReady, so no need to save here unless it's changed by user
+            localStorage.setItem('youtubeBgVideoId', videoId.videoId);
+            if (videoId.playlistId) {
+                localStorage.setItem('youtubeBgPlaylistId', videoId.playlistId);
+            }
         }
         
         function onPlayerStateChange(event) {
@@ -1273,9 +1547,17 @@
             const url = youtubeUrlInput.value.trim();
             const currentVolume = ytPlayer && typeof ytPlayer.getVolume === 'function' ? ytPlayer.getVolume() : 50;
             if (url) {
-                const videoId = extractYouTubeVideoId(url);
-                if (videoId) {
-                    loadYouTubeVideo(videoId, currentVolume);
+                const { videoId, playlistId } = extractYouTubeVideoId(url);
+                if (videoId || playlistId) {
+                    // 既存のプレーヤーを破棄
+                    if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                        ytPlayer.destroy();
+                        ytPlayer = null;
+                    }
+                    document.getElementById('youtube-player-background').innerHTML = '';
+                    
+                    // 新しいプレーヤーを作成
+                    loadYouTubeVideo({ videoId, playlistId }, currentVolume);
                     youtubeUrlInput.value = '';
                     youtubeSettingsPanel.style.display = 'none';
                     showMessage("背景動画を設定しました。", 2000);
@@ -1285,7 +1567,15 @@
             } else {
                 // デフォルトの動画IDを設定
                 const defaultVideoId = 'X9IOZ4trc2U';
-                loadYouTubeVideo(defaultVideoId, currentVolume);
+                // 既存のプレーヤーを破棄
+                if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                    ytPlayer.destroy();
+                    ytPlayer = null;
+                }
+                document.getElementById('youtube-player-background').innerHTML = '';
+                
+                // 新しいプレーヤーを作成
+                loadYouTubeVideo({ videoId: defaultVideoId }, currentVolume);
                 localStorage.setItem('youtubeBgVideoId', defaultVideoId);
                 youtubeUrlInput.value = '';
                 youtubeSettingsPanel.style.display = 'none';
@@ -1349,10 +1639,28 @@
             }
         }
         prevVideoBtn.addEventListener('click', async () => {
-            showMessage("このボタンは現在無効です (YouTube用ではありません)", 2000);
+            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') {
+                showMessage("背景動画プレーヤーが準備できていません。", 2000);
+                return;
+            }
+            if (ytPlayer.getPlaylist && ytPlayer.getPlaylist().length > 0) {
+                ytPlayer.previousVideo();
+                showMessage("前の動画に移動しました", 1000);
+            } else {
+                showMessage("再生リストが設定されていません", 2000);
+            }
         });
         nextVideoBtn.addEventListener('click', async () => {
-            showMessage("このボタンは現在無効です (YouTube用ではありません)", 2000);
+            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') {
+                showMessage("背景動画プレーヤーが準備できていません。", 2000);
+                return;
+            }
+            if (ytPlayer.getPlaylist && ytPlayer.getPlaylist().length > 0) {
+                ytPlayer.nextVideo();
+                showMessage("次の動画に移動しました", 1000);
+            } else {
+                showMessage("再生リストが設定されていません", 2000);
+            }
         });
 
         function updateClock() {
@@ -1636,9 +1944,6 @@
                 }
             } else if (e.code === 'KeyR') {
                 resetPomodoroTimer();
-            } else if (e.code === 'KeyS') {
-                document.getElementById('pomodoro-settings').style.display = 
-                    document.getElementById('pomodoro-settings').style.display === 'none' ? 'block' : 'none';
             }
         });
 
@@ -1685,6 +1990,134 @@
 
         // イベントリスナーの追加
         document.getElementById('toggle-tasks').addEventListener('click', toggleTasks);
+
+        // 保存された動画の管理
+        let savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
+
+        function saveVideo() {
+            const url = document.getElementById('saved-video-url').value.trim();
+            const name = document.getElementById('video-name-input').value.trim();
+            
+            if (!url) {
+                showMessage("URLを入力してください", 2000);
+                return;
+            }
+            
+            if (!name) {
+                showMessage("動画の名前を入力してください", 2000);
+                return;
+            }
+
+            const { videoId, playlistId } = extractYouTubeVideoId(url);
+            if (!videoId && !playlistId) {
+                showMessage("無効なYouTube URLです", 2000);
+                return;
+            }
+
+            // 重複チェック
+            if (savedVideos.some(video => video.name === name)) {
+                showMessage("この名前は既に使用されています", 2000);
+                return;
+            }
+
+            savedVideos.push({
+                name,
+                videoId,
+                playlistId,
+                url
+            });
+
+            localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+            renderSavedVideos();
+            clearVideoForm();
+            showMessage("動画を保存しました", 2000);
+        }
+
+        function clearVideoForm() {
+            document.getElementById('saved-video-url').value = '';
+            document.getElementById('video-name-input').value = '';
+        }
+
+        // クリアボタンのイベントリスナー
+        document.getElementById('clear-form-btn').addEventListener('click', clearVideoForm);
+
+        function renderSavedVideos() {
+            const container = document.getElementById('saved-videos-list');
+            container.innerHTML = '';
+
+            savedVideos.forEach((video, index) => {
+                const item = document.createElement('div');
+                item.className = 'saved-video-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'saved-video-name';
+                nameSpan.textContent = video.name;
+                
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'saved-video-buttons';
+                
+                const loadBtn = document.createElement('button');
+                loadBtn.className = 'saved-video-btn';
+                loadBtn.innerHTML = '<i class="fas fa-play"></i>';
+                loadBtn.title = 'この動画を読み込む';
+                loadBtn.onclick = () => loadSavedVideo(video);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'saved-video-btn delete';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.title = 'この動画を削除';
+                deleteBtn.onclick = () => deleteSavedVideo(index);
+                
+                buttonsDiv.appendChild(loadBtn);
+                buttonsDiv.appendChild(deleteBtn);
+                
+                item.appendChild(nameSpan);
+                item.appendChild(buttonsDiv);
+                container.appendChild(item);
+            });
+        }
+
+        function loadSavedVideo(video) {
+            const currentVolume = ytPlayer && typeof ytPlayer.getVolume === 'function' ? ytPlayer.getVolume() : 50;
+            
+            // 既存のプレーヤーを破棄
+            if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                ytPlayer.destroy();
+                ytPlayer = null;
+            }
+            document.getElementById('youtube-player-background').innerHTML = '';
+            
+            // 新しいプレーヤーを作成
+            loadYouTubeVideo({ videoId: video.videoId, playlistId: video.playlistId }, currentVolume);
+            youtubeSettingsPanel.style.display = 'none';
+            showMessage(`${video.name}を読み込みました`, 2000);
+        }
+
+        function deleteSavedVideo(index) {
+            savedVideos.splice(index, 1);
+            localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+            renderSavedVideos();
+            showMessage("動画を削除しました", 2000);
+        }
+
+        // タブ切り替え
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // タブのアクティブ状態を切り替え
+                document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // コンテンツの表示を切り替え
+                document.querySelectorAll('.settings-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`${tab.dataset.tab}-content`).classList.add('active');
+            });
+        });
+
+        // 保存ボタンのイベントリスナー
+        document.getElementById('save-video-btn').addEventListener('click', saveVideo);
+
+        // 初期表示
+        renderSavedVideos();
 
         window.addEventListener('load', () => {
             updateClock();
