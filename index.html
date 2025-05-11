@@ -994,7 +994,6 @@
             background-color: #4a5270;
             transform: translateY(-1px);
         }
-<<<<<<< HEAD
 
         #pomodoro-settings {
             display: none;
@@ -1255,8 +1254,6 @@
             }
             initializeAudio();
         });
-=======
->>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
     </style>
 </head>
 <body>
@@ -1395,7 +1392,6 @@
         </div>
     </div>
     <div id="youtube-settings-panel" class="fixed-card" style="margin:0;">
-<<<<<<< HEAD
         <div class="settings-header">
             <h3>背景動画設定</h3>
             <button id="close-youtube-settings" class="close-btn"><i class="fas fa-times"></i></button>
@@ -1405,24 +1401,6 @@
                 <div class="form-group">
                     <label for="youtube-url-input">YouTube 動画 URL:</label>
                     <input type="text" id="youtube-url-input" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
-=======
-        <div class="settings-tabs">
-            <div class="settings-tab active" data-tab="quick-set">クイック設定</div>
-            <div class="settings-tab" data-tab="saved-videos">保存済み動画</div>
-        </div>
-        
-        <div class="settings-content active" id="quick-set-content">
-            <label for="youtube-url-input">YouTube 動画 URL:</label>
-            <input type="text" id="youtube-url-input" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
-            <button id="set-youtube-bg-btn">背景を設定</button>
-        </div>
-
-        <div class="settings-content" id="saved-videos-content">
-            <div class="save-video-form">
-                <div class="form-group">
-                    <label for="saved-video-url">YouTube 動画 URL:</label>
-                    <input type="text" id="saved-video-url" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
->>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
                 </div>
                 <div class="form-group">
                     <label for="video-name-input">動画の名前:</label>
@@ -1430,10 +1408,7 @@
                 </div>
                 <div class="form-actions">
                     <button id="clear-form-btn">クリア</button>
-<<<<<<< HEAD
                     <button id="set-youtube-bg-btn">背景を設定</button>
-=======
->>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
                     <button id="save-video-btn">保存</button>
                 </div>
             </div>
@@ -2282,11 +2257,7 @@
         let savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
 
         function saveVideo() {
-<<<<<<< HEAD
             const url = document.getElementById('youtube-url-input').value.trim();
-=======
-            const url = document.getElementById('saved-video-url').value.trim();
->>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
             const name = document.getElementById('video-name-input').value.trim();
             
             if (!url) {
@@ -2325,11 +2296,7 @@
         }
 
         function clearVideoForm() {
-<<<<<<< HEAD
             document.getElementById('youtube-url-input').value = '';
-=======
-            document.getElementById('saved-video-url').value = '';
->>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
             document.getElementById('video-name-input').value = '';
         }
 
@@ -2419,7 +2386,7 @@
             loadTasksFromLocalStorage();
             updatePomodoroDisplay();
             loadYouTubeAPI();
-            showMessage("右下の歯車アイコンから背景動画を設定できます。", 4000);
+            showMessage("右下の歯車アイコンから背景を設定できます。", 4000);
             loadSettings();
             const savedCollapsed = localStorage.getItem('pomodoroCollapsed');
             if (savedCollapsed === 'true') {
