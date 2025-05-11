@@ -994,6 +994,269 @@
             background-color: #4a5270;
             transform: translateY(-1px);
         }
+<<<<<<< HEAD
+
+        #pomodoro-settings {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background-color: rgba(31, 35, 53, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .settings-content {
+            display: block;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a9b1d6;
+        }
+
+        .setting-item input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #3b4261;
+            background-color: rgba(41, 46, 66, 0.8);
+            color: #c0caf5;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #7aa2f7;
+            color: #1a1b26;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .save-btn:hover {
+            background-color: #567efb;
+            transform: translateY(-1px);
+        }
+
+        document.getElementById('settings-pomodoro').addEventListener('click', () => {
+            // モーダルを表示
+            const modal = document.getElementById('pomodoro-settings');
+            modal.style.display = 'block';
+
+            // 現在の設定値をフォームに反映
+            document.getElementById('work-time').value = Math.floor(workDuration / 60);
+            document.getElementById('short-break-time').value = Math.floor(shortBreakDuration / 60);
+            document.getElementById('long-break-time').value = Math.floor(longBreakDuration / 60);
+            document.getElementById('sessions-before-long-break').value = sessionsBeforeLongBreak;
+        });
+
+        document.getElementById('close-settings').addEventListener('click', () => {
+            document.getElementById('pomodoro-settings').style.display = 'none';
+        });
+
+        document.getElementById('save-settings').addEventListener('click', saveSettings);
+
+        function togglePomodoro() {
+            const content = document.getElementById('pomodoro-content');
+            const container = document.getElementById('pomodoro-container');
+            const toggleBtn = document.getElementById('toggle-pomodoro');
+            
+            isPomodoroCollapsed = !isPomodoroCollapsed;
+            content.classList.toggle('collapsed');
+            container.classList.toggle('collapsed');
+            toggleBtn.classList.toggle('rotated');
+            
+            // 状態を保存
+            localStorage.setItem('pomodoroCollapsed', isPomodoroCollapsed);
+        }
+
+        // イベントリスナーの追加
+        document.getElementById('toggle-pomodoro').addEventListener('click', togglePomodoro);
+
+        function toggleTasks() {
+            const content = document.querySelector('.tasks-content');
+            const container = document.getElementById('tasks-container');
+            const toggleBtn = document.getElementById('toggle-tasks');
+            
+            isTasksCollapsed = !isTasksCollapsed;
+            content.classList.toggle('collapsed');
+            container.classList.toggle('collapsed');
+            toggleBtn.classList.toggle('rotated');
+            
+            // 状態を保存
+            localStorage.setItem('tasksCollapsed', isTasksCollapsed);
+        }
+
+        // イベントリスナーの追加
+        document.getElementById('toggle-tasks').addEventListener('click', toggleTasks);
+
+        // 保存された動画の管理
+        let savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
+
+        function saveVideo() {
+            const url = document.getElementById('youtube-url-input').value.trim();
+            const name = document.getElementById('video-name-input').value.trim();
+            
+            if (!url) {
+                showMessage("URLを入力してください", 2000);
+                return;
+            }
+            
+            if (!name) {
+                showMessage("動画の名前を入力してください", 2000);
+                return;
+            }
+
+            const { videoId, playlistId } = extractYouTubeVideoId(url);
+            if (!videoId && !playlistId) {
+                showMessage("無効なYouTube URLです", 2000);
+                return;
+            }
+
+            // 重複チェック
+            if (savedVideos.some(video => video.name === name)) {
+                showMessage("この名前は既に使用されています", 2000);
+                return;
+            }
+
+            savedVideos.push({
+                name,
+                videoId,
+                playlistId,
+                url
+            });
+
+            localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+            renderSavedVideos();
+            clearVideoForm();
+            showMessage("動画を保存しました", 2000);
+        }
+
+        function clearVideoForm() {
+            document.getElementById('youtube-url-input').value = '';
+            document.getElementById('video-name-input').value = '';
+        }
+
+        // クリアボタンのイベントリスナー
+        document.getElementById('clear-form-btn').addEventListener('click', clearVideoForm);
+
+        function renderSavedVideos() {
+            const container = document.getElementById('saved-videos-list');
+            container.innerHTML = '';
+
+            savedVideos.forEach((video, index) => {
+                const item = document.createElement('div');
+                item.className = 'saved-video-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'saved-video-name';
+                nameSpan.textContent = video.name;
+                
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'saved-video-buttons';
+                
+                const loadBtn = document.createElement('button');
+                loadBtn.className = 'saved-video-btn';
+                loadBtn.innerHTML = '<i class="fas fa-play"></i>';
+                loadBtn.title = 'この動画を読み込む';
+                loadBtn.onclick = () => loadSavedVideo(video);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'saved-video-btn delete';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.title = 'この動画を削除';
+                deleteBtn.onclick = () => deleteSavedVideo(index);
+                
+                buttonsDiv.appendChild(loadBtn);
+                buttonsDiv.appendChild(deleteBtn);
+                
+                item.appendChild(nameSpan);
+                item.appendChild(buttonsDiv);
+                container.appendChild(item);
+            });
+        }
+
+        function loadSavedVideo(video) {
+            const currentVolume = ytPlayer && typeof ytPlayer.getVolume === 'function' ? ytPlayer.getVolume() : 50;
+            
+            // 既存のプレーヤーを破棄
+            if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                ytPlayer.destroy();
+                ytPlayer = null;
+            }
+            document.getElementById('youtube-player-background').innerHTML = '';
+            
+            // 新しいプレーヤーを作成
+            loadYouTubeVideo({ videoId: video.videoId, playlistId: video.playlistId }, currentVolume);
+            youtubeSettingsPanel.style.display = 'none';
+            showMessage(`${video.name}を読み込みました`, 2000);
+        }
+
+        function deleteSavedVideo(index) {
+            savedVideos.splice(index, 1);
+            localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+            renderSavedVideos();
+            showMessage("動画を削除しました", 2000);
+        }
+
+        // タブ切り替え
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // タブのアクティブ状態を切り替え
+                document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // コンテンツの表示を切り替え
+                document.querySelectorAll('.settings-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`${tab.dataset.tab}-content`).classList.add('active');
+            });
+        });
+
+        // 保存ボタンのイベントリスナー
+        document.getElementById('save-video-btn').addEventListener('click', saveVideo);
+
+        // 初期表示
+        renderSavedVideos();
+
+        window.addEventListener('load', () => {
+            updateClock();
+            loadTasksFromLocalStorage();
+            updatePomodoroDisplay();
+            loadYouTubeAPI();
+            showMessage("右下の歯車アイコンから背景動画を設定できます。", 4000);
+            loadSettings();
+            const savedCollapsed = localStorage.getItem('pomodoroCollapsed');
+            if (savedCollapsed === 'true') {
+                togglePomodoro();
+            }
+            const savedTasksCollapsed = localStorage.getItem('tasksCollapsed');
+            if (savedTasksCollapsed === 'true') {
+                toggleTasks();
+            }
+            initializeAudio();
+        });
+=======
+>>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
     </style>
 </head>
 <body>
@@ -1132,6 +1395,17 @@
         </div>
     </div>
     <div id="youtube-settings-panel" class="fixed-card" style="margin:0;">
+<<<<<<< HEAD
+        <div class="settings-header">
+            <h3>背景動画設定</h3>
+            <button id="close-youtube-settings" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="settings-content">
+            <div class="save-video-form">
+                <div class="form-group">
+                    <label for="youtube-url-input">YouTube 動画 URL:</label>
+                    <input type="text" id="youtube-url-input" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
+=======
         <div class="settings-tabs">
             <div class="settings-tab active" data-tab="quick-set">クイック設定</div>
             <div class="settings-tab" data-tab="saved-videos">保存済み動画</div>
@@ -1148,6 +1422,7 @@
                 <div class="form-group">
                     <label for="saved-video-url">YouTube 動画 URL:</label>
                     <input type="text" id="saved-video-url" placeholder="例: https://www.youtube.com/watch?v=VIDEO_ID">
+>>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
                 </div>
                 <div class="form-group">
                     <label for="video-name-input">動画の名前:</label>
@@ -1155,6 +1430,10 @@
                 </div>
                 <div class="form-actions">
                     <button id="clear-form-btn">クリア</button>
+<<<<<<< HEAD
+                    <button id="set-youtube-bg-btn">背景を設定</button>
+=======
+>>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
                     <button id="save-video-btn">保存</button>
                 </div>
             </div>
@@ -1948,7 +2227,15 @@
         });
 
         document.getElementById('settings-pomodoro').addEventListener('click', () => {
-            document.getElementById('pomodoro-settings').style.display = 'block';
+            // モーダルを表示
+            const modal = document.getElementById('pomodoro-settings');
+            modal.style.display = 'block';
+
+            // 現在の設定値をフォームに反映
+            document.getElementById('work-time').value = Math.floor(workDuration / 60);
+            document.getElementById('short-break-time').value = Math.floor(shortBreakDuration / 60);
+            document.getElementById('long-break-time').value = Math.floor(longBreakDuration / 60);
+            document.getElementById('sessions-before-long-break').value = sessionsBeforeLongBreak;
         });
 
         document.getElementById('close-settings').addEventListener('click', () => {
@@ -1995,7 +2282,11 @@
         let savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
 
         function saveVideo() {
+<<<<<<< HEAD
+            const url = document.getElementById('youtube-url-input').value.trim();
+=======
             const url = document.getElementById('saved-video-url').value.trim();
+>>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
             const name = document.getElementById('video-name-input').value.trim();
             
             if (!url) {
@@ -2034,7 +2325,11 @@
         }
 
         function clearVideoForm() {
+<<<<<<< HEAD
+            document.getElementById('youtube-url-input').value = '';
+=======
             document.getElementById('saved-video-url').value = '';
+>>>>>>> c77ed80d13c679a8e12faf23cb0e723aed9caacb
             document.getElementById('video-name-input').value = '';
         }
 
