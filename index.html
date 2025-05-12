@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>集中アプリ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&family=Quicksand:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
@@ -1253,7 +1253,116 @@
                 toggleTasks();
             }
             initializeAudio();
+
+            // フォント選択オプションの更新
+            const fontSelect = document.getElementById('clock-font-select');
+            const options = fontSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                options[i].textContent = '12:34';
+            }
         });
+
+        .font-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #3b4261;
+            background-color: rgba(41, 46, 66, 0.8);
+            color: #c0caf5;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .font-select option {
+            padding: 8px;
+            font-family: var(--font-family);
+            transition: all 0.3s ease;
+        }
+
+        .font-select option:hover {
+            background-color: rgba(122, 162, 247, 0.2);
+        }
+
+        .font-select option[value="Inter"] { font-family: 'Inter', sans-serif; }
+        .font-select option[value="Roboto"] { font-family: 'Roboto', sans-serif; }
+        .font-select option[value="Lato"] { font-family: 'Lato', sans-serif; }
+        .font-select option[value="Montserrat"] { font-family: 'Montserrat', sans-serif; }
+        .font-select option[value="Open Sans"] { font-family: 'Open Sans', sans-serif; }
+        .font-select option[value="Quicksand"] { font-family: 'Quicksand', sans-serif; }
+        .font-select option[value="Poppins"] { font-family: 'Poppins', sans-serif; }
+        .font-select option[value="Outfit"] { font-family: 'Outfit', sans-serif; }
+        .font-select option[value="Space Grotesk"] { font-family: 'Space Grotesk', sans-serif; }
+        .font-select option[value="Plus Jakarta Sans"] { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-select option[value="Share Tech Mono"] { font-family: 'Share Tech Mono', monospace; }
+
+        #clock-container {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #clock-container:hover {
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        /* フォントプレビューのスタイル */
+        .font-preview {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(31, 35, 53, 0.95);
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 2.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            border: 1px solid rgba(122, 162, 247, 0.3);
+            backdrop-filter: blur(5px);
+            width: 100%;
+            text-align: center;
+        }
+
+        .font-preview.show {
+            opacity: 1;
+        }
+
+        #clock {
+            transition: opacity 0.3s ease;
+        }
+
+        #clock-container:hover #clock {
+            opacity: 0;
+        }
+
+        // フォントプレビュー機能の追加
+        const fontSelect = document.getElementById('clock-font-select');
+        const preview = document.createElement('div');
+        preview.className = 'font-preview';
+        document.getElementById('clock-container').appendChild(preview);
+
+        fontSelect.addEventListener('mouseover', (e) => {
+            const option = e.target;
+            if (option.tagName === 'OPTION') {
+                preview.textContent = '12:34';
+                preview.style.fontFamily = option.value;
+                preview.classList.add('show');
+            }
+        });
+
+        fontSelect.addEventListener('mouseout', () => {
+            preview.classList.remove('show');
+        });
+
+        // フォント選択オプションの更新
+        const fontSelect = document.getElementById('clock-font-select');
+        const options = fontSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            options[i].textContent = '12:34';
+        }
     </style>
 </head>
 <body>
@@ -1261,6 +1370,45 @@
 
     <div id="clock-container" class="fixed-card">
         <div id="clock">00:00</div>
+    </div>
+
+    <div id="clock-settings-panel" class="fixed-card" style="display: none; z-index: 1000; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <div class="settings-header">
+            <h3>時計のフォント設定</h3>
+            <button id="close-clock-settings" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>フォントスタイル:</label>
+                <select id="clock-font-select" class="font-select">
+                    <option value="Inter">12:34</option>
+                    <option value="Roboto">12:34</option>
+                    <option value="Lato">12:34</option>
+                    <option value="Montserrat">12:34</option>
+                    <option value="Open Sans">12:34</option>
+                    <option value="Quicksand">12:34</option>
+                    <option value="Poppins">12:34</option>
+                    <option value="Outfit">12:34</option>
+                    <option value="Space Grotesk">12:34</option>
+                    <option value="Plus Jakarta Sans">12:34</option>
+                    <option value="Share Tech Mono">12:34</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>フォントサイズ:</label>
+                <input type="range" id="clock-font-size" min="1" max="5" value="2.8" step="0.1">
+                <span id="font-size-value">2.8rem</span>
+            </div>
+            <div class="setting-item">
+                <label>フォントの太さ:</label>
+                <select id="clock-font-weight" class="font-select">
+                    <option value="400">Regular</option>
+                    <option value="500">Medium</option>
+                    <option value="600" selected>Semibold</option>
+                    <option value="700">Bold</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div id="tasks-container" class="fixed-card">
@@ -1791,6 +1939,11 @@
 
         settingsIcon.addEventListener('click', () => {
             youtubeSettingsPanel.style.display = youtubeSettingsPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // 閉じるボタンのイベントリスナーを追加
+        document.getElementById('close-youtube-settings').addEventListener('click', () => {
+            youtubeSettingsPanel.style.display = 'none';
         });
 
         soundIcon.addEventListener('click', () => {
@@ -2397,6 +2550,75 @@
                 toggleTasks();
             }
             initializeAudio();
+
+            // フォント選択オプションの更新
+            const fontSelect = document.getElementById('clock-font-select');
+            const options = fontSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                options[i].textContent = '12:34';
+            }
+        });
+
+        // 時計のフォント設定
+        const clockContainer = document.getElementById('clock-container');
+        const clockSettingsPanel = document.getElementById('clock-settings-panel');
+        const clockFontSelect = document.getElementById('clock-font-select');
+        const clockFontSize = document.getElementById('clock-font-size');
+        const clockFontWeight = document.getElementById('clock-font-weight');
+        const fontSizeValue = document.getElementById('font-size-value');
+
+        // 時計をクリックしたときに設定パネルを表示
+        clockContainer.addEventListener('click', () => {
+            clockSettingsPanel.style.display = 'block';
+        });
+
+        // 設定パネルを閉じる
+        document.getElementById('close-clock-settings').addEventListener('click', () => {
+            clockSettingsPanel.style.display = 'none';
+        });
+
+        // フォントスタイルの変更
+        clockFontSelect.addEventListener('change', () => {
+            const selectedFont = clockFontSelect.value;
+            clockContainer.style.fontFamily = selectedFont;
+            localStorage.setItem('clockFont', selectedFont);
+        });
+
+        // フォントサイズの変更
+        clockFontSize.addEventListener('input', () => {
+            const size = clockFontSize.value;
+            clockContainer.style.fontSize = `${size}rem`;
+            fontSizeValue.textContent = `${size}rem`;
+            localStorage.setItem('clockFontSize', size);
+        });
+
+        // フォントの太さの変更
+        clockFontWeight.addEventListener('change', () => {
+            const weight = clockFontWeight.value;
+            clockContainer.style.fontWeight = weight;
+            localStorage.setItem('clockFontWeight', weight);
+        });
+
+        // 保存された設定を読み込む
+        function loadClockSettings() {
+            const savedFont = localStorage.getItem('clockFont') || 'Inter';
+            const savedSize = localStorage.getItem('clockFontSize') || '2.8';
+            const savedWeight = localStorage.getItem('clockFontWeight') || '600';
+
+            clockFontSelect.value = savedFont;
+            clockFontSize.value = savedSize;
+            clockFontWeight.value = savedWeight;
+            fontSizeValue.textContent = `${savedSize}rem`;
+
+            clockContainer.style.fontFamily = savedFont;
+            clockContainer.style.fontSize = `${savedSize}rem`;
+            clockContainer.style.fontWeight = savedWeight;
+        }
+
+        // ページ読み込み時に設定を読み込む
+        window.addEventListener('load', () => {
+            loadClockSettings();
+            // ... existing code ...
         });
     </script>
 </body>
