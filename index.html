@@ -1770,25 +1770,40 @@
 
         // --- YouTube Background Logic ---
         function loadYouTubeAPI() {
-            const tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api"; // Corrected API URL
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        }
-
-        window.onYouTubeIframeAPIReady = function() {
-            const savedVideoId = localStorage.getItem('youtubeBgVideoId');
-            const savedPlaylistId = localStorage.getItem('youtubeBgPlaylistId');
-            const savedVolume = localStorage.getItem('youtubeBgVolume');
-            
-            if (savedVideoId || savedPlaylistId) {
-                loadYouTubeVideo({ videoId: savedVideoId, playlistId: savedPlaylistId }, savedVolume ? parseInt(savedVolume) : 50);
-            } else {
-                // デフォルトの動画IDを設定
-                const defaultVideoId = 'X9IOZ4trc2U';
-                loadYouTubeVideo({ videoId: defaultVideoId }, savedVolume ? parseInt(savedVolume) : 50);
-                localStorage.setItem('youtubeBgVideoId', defaultVideoId);
+            if (window.YT) {
+                return Promise.resolve();
             }
+
+            return new Promise((resolve, reject) => {
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+                window.onYouTubeIframeAPIReady = function() {
+                    const savedVideoId = localStorage.getItem('youtubeBgVideoId');
+                    const savedPlaylistId = localStorage.getItem('youtubeBgPlaylistId');
+                    const savedVolume = localStorage.getItem('youtubeBgVolume');
+                    
+                    if (savedVideoId || savedPlaylistId) {
+                        loadYouTubeVideo({ videoId: savedVideoId, playlistId: savedPlaylistId }, savedVolume ? parseInt(savedVolume) : 50);
+                    } else {
+                        const defaultVideoId = null;
+                        const defaultPlaylistId = 'PLHAiJQlYR9FhE53PIv7LHoAx_W7govDY7';
+                        loadYouTubeVideo({ videoId: defaultVideoId, playlistId: defaultPlaylistId }, savedVolume ? parseInt(savedVolume) : 50);
+                        localStorage.setItem('youtubeBgVideoId', defaultVideoId);
+                        localStorage.setItem('youtubeBgPlaylistId', defaultPlaylistId);
+                    }
+                    resolve();
+                };
+
+                // タイムアウト処理を追加
+                setTimeout(() => {
+                    if (!window.YT) {
+                        reject(new Error('YouTube APIの読み込みがタイムアウトしました。'));
+                    }
+                }, 10000);
+            });
         }
 
         function extractYouTubeVideoId(url) {
@@ -1814,20 +1829,32 @@
                 else if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.pathname.startsWith('/playlist')) {
                     playlistId = urlObj.searchParams.get('list');
                 }
+                // Live stream URLs
+                else if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.pathname.startsWith('/live/')) {
+                    videoId = urlObj.pathname.split('/live/')[1].split('?')[0];
+                }
             } catch (e) {
                 // console.warn("URL parsing with new URL() failed, trying regex for:", url, e);
             }
             
             // Fallback regex if URL parsing failed or for plain IDs / other formats
             if (!videoId && !playlistId) { 
-                const videoRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/;
+                const videoRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=|live\/)|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/;
                 const playlistRegex = /[?&]list=([^&]+)/;
                 const videoMatch = url.match(videoRegex);
                 const playlistMatch = url.match(playlistRegex);
                 if (videoMatch) videoId = videoMatch[1];
                 if (playlistMatch) playlistId = playlistMatch[1];
             }
-            return { videoId, playlistId };
+
+            // ライブストリームの場合は、videoIdの前に 'live_' を付加
+            if (videoId) {
+                // YouTubeのライブストリームは通常の動画IDと同じ形式を使用するため、
+                // プレーヤーの設定でライブストリームとして扱うようにします
+                return { videoId, playlistId, isLive: true };
+            }
+            
+            return { videoId, playlistId, isLive: false };
         }
         
         function updateVolumeControlsUI(volume, isMuted) {
@@ -1849,23 +1876,33 @@
                 videoStatusDisplay.textContent = "背景動画: 読み込みエラー";
                 playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
                 isYouTubeVideoPlaying = false;
-                updateVolumeControlsUI(initialVolume, true); // Reset volume UI
+                updateVolumeControlsUI(initialVolume, true);
                 return;
             }
 
             const playerVars = {
-                autoplay: 1, controls: 0, showinfo: 0, modestbranding: 1,
-                loop: 1, fs: 0, cc_load_policy: 0,
-                iv_load_policy: 3, autohide: 0, 
-                mute: 0, // Ensure sound is on by default
-                playsinline: 1
+                autoplay: 1,
+                controls: 0,
+                showinfo: 0,
+                modestbranding: 1,
+                loop: 0,
+                fs: 0,
+                cc_load_policy: 0,
+                iv_load_policy: 3,
+                autohide: 0,
+                mute: 0,
+                playsinline: 1,
+                origin: window.location.origin,
+                enablejsapi: 1,
+                widget_referrer: window.location.href
             };
 
             // 再生リストがある場合は設定
             if (videoId.playlistId) {
                 playerVars.listType = 'playlist';
                 playerVars.list = videoId.playlistId;
-            } else {
+                playerVars.playlist = videoId.playlistId;
+            } else if (videoId.videoId) {
                 playerVars.playlist = videoId.videoId;
             }
 
@@ -1878,33 +1915,62 @@
             } else {
                 if (ytPlayer && typeof ytPlayer.destroy === 'function') { ytPlayer.destroy(); }
                 document.getElementById('youtube-player-background').innerHTML = '';
-                ytPlayer = new YT.Player('youtube-player-background', {
-                    videoId: videoId.videoId,
-                    playerVars: playerVars,
-                    events: {
-                        'onReady': (event) => {
-                            event.target.setVolume(initialVolume);
-                            if(event.target.isMuted()) {
-                                event.target.unMute();
+                
+                // プレーヤーの作成を試みる前に、YouTube APIが利用可能か確認
+                if (typeof YT === 'undefined' || !YT.Player) {
+                    showMessage("YouTube APIの読み込みに失敗しました。ページを再読み込みしてください。", 3000);
+                    return;
+                }
+
+                try {
+                    ytPlayer = new YT.Player('youtube-player-background', {
+                        height: '100%',
+                        width: '100%',
+                        videoId: videoId.videoId,
+                        playerVars: playerVars,
+                        events: {
+                            'onReady': (event) => {
+                                event.target.setVolume(initialVolume);
+                                if(event.target.isMuted()) {
+                                    event.target.unMute();
+                                }
+                                event.target.playVideo();
+                                updateVolumeControlsUI(event.target.getVolume(), event.target.isMuted());
+                            },
+                            'onStateChange': onPlayerStateChange,
+                            'onError': (event) => {
+                                console.error("YouTube Player Error:", event.data);
+                                let errorMessage = "背景動画の読み込みに失敗しました。";
+                                
+                                // エラーコードに基づいてメッセージを変更
+                                switch(event.data) {
+                                    case 150:
+                                        errorMessage = "この動画は埋め込み再生が許可されていません。";
+                                        break;
+                                    case 101:
+                                        errorMessage = "この動画は埋め込み再生が許可されていません。";
+                                        break;
+                                    case 150:
+                                        errorMessage = "この動画は埋め込み再生が許可されていません。";
+                                        break;
+                                }
+                                
+                                showMessage(errorMessage, 3000);
+                                if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+                                    ytPlayer.destroy(); ytPlayer = null;
+                                }
+                                document.getElementById('youtube-player-background').innerHTML = '';
+                                videoStatusDisplay.textContent = "背景動画: 読み込みエラー";
+                                playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
+                                isYouTubeVideoPlaying = false;
+                                updateVolumeControlsUI(initialVolume, true);
                             }
-                            event.target.playVideo();
-                            updateVolumeControlsUI(event.target.getVolume(), event.target.isMuted());
-                        },
-                        'onStateChange': onPlayerStateChange,
-                        'onError': (event) => {
-                            console.error("YouTube Player Error:", event.data);
-                            showMessage("背景動画の読み込みに失敗しました。", 3000);
-                            if (ytPlayer && typeof ytPlayer.destroy === 'function') {
-                                ytPlayer.destroy(); ytPlayer = null;
-                            }
-                            document.getElementById('youtube-player-background').innerHTML = '';
-                            videoStatusDisplay.textContent = "背景動画: 読み込みエラー";
-                            playPauseVideoBtn.innerHTML = '<i class="fas fa-play"></i>';
-                            isYouTubeVideoPlaying = false;
-                            updateVolumeControlsUI(initialVolume, true);
                         }
-                    }
-                });
+                    });
+                } catch (error) {
+                    console.error("YouTube Player initialization error:", error);
+                    showMessage("YouTubeプレーヤーの初期化に失敗しました。", 3000);
+                }
             }
             localStorage.setItem('youtubeBgVideoId', videoId.videoId);
             if (videoId.playlistId) {
@@ -1973,17 +2039,11 @@
                 }
             } else {
                 // デフォルトの動画IDを設定
-                const defaultVideoId = 'X9IOZ4trc2U';
-                // 既存のプレーヤーを破棄
-                if (ytPlayer && typeof ytPlayer.destroy === 'function') {
-                    ytPlayer.destroy();
-                    ytPlayer = null;
-                }
-                document.getElementById('youtube-player-background').innerHTML = '';
-                
-                // 新しいプレーヤーを作成
-                loadYouTubeVideo({ videoId: defaultVideoId }, currentVolume);
+                const defaultVideoId = null;
+                const defaultPlaylistId = 'PLHAiJQlYR9FhE53PIv7LHoAx_W7govDY7';
+                loadYouTubeVideo({ videoId: defaultVideoId, playlistId: defaultPlaylistId }, currentVolume);
                 localStorage.setItem('youtubeBgVideoId', defaultVideoId);
+                localStorage.setItem('youtubeBgPlaylistId', defaultPlaylistId);
                 youtubeUrlInput.value = '';
                 youtubeSettingsPanel.style.display = 'none';
                 showMessage("デフォルトの背景動画を設定しました。", 2000);
