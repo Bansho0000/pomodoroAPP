@@ -1180,14 +1180,17 @@
                 loadBtn.title = 'この動画を読み込む';
                 loadBtn.onclick = () => loadSavedVideo(video);
                 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'saved-video-btn delete';
-                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                deleteBtn.title = 'この動画を削除';
-                deleteBtn.onclick = () => deleteSavedVideo(index);
-                
                 buttonsDiv.appendChild(loadBtn);
-                buttonsDiv.appendChild(deleteBtn);
+                
+                // デフォルト以外の動画にのみ削除ボタンを追加
+                if (video.name !== "デフォルト") {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'saved-video-btn delete';
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteBtn.title = 'この動画を削除';
+                    deleteBtn.onclick = () => deleteSavedVideo(index);
+                    buttonsDiv.appendChild(deleteBtn);
+                }
                 
                 item.appendChild(nameSpan);
                 item.appendChild(buttonsDiv);
@@ -1253,6 +1256,19 @@
                 toggleTasks();
             }
             initializeAudio();
+
+            // デフォルトのプレイリストを追加
+            const defaultPlaylist = {
+                name: "デフォルト",
+                videoId: null,
+                playlistId: "PLHAiJQlYR9FhE53PIv7LHoAx_W7govDY7",
+                url: "https://youtube.com/playlist?list=PLHAiJQlYR9FhE53PIv7LHoAx_W7govDY7&si=Hz5wXGgCHjnTbgNQ"
+            };
+            if (!savedVideos.some(video => video.playlistId === defaultPlaylist.playlistId)) {
+                savedVideos.push(defaultPlaylist);
+                localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+                renderSavedVideos();
+            }
 
             // フォント選択オプションの更新
             const fontSelect = document.getElementById('clock-font-select');
@@ -2537,14 +2553,17 @@
                 loadBtn.title = 'この動画を読み込む';
                 loadBtn.onclick = () => loadSavedVideo(video);
                 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'saved-video-btn delete';
-                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                deleteBtn.title = 'この動画を削除';
-                deleteBtn.onclick = () => deleteSavedVideo(index);
-                
                 buttonsDiv.appendChild(loadBtn);
-                buttonsDiv.appendChild(deleteBtn);
+                
+                // デフォルト以外の動画にのみ削除ボタンを追加
+                if (video.name !== "デフォルト") {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'saved-video-btn delete';
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteBtn.title = 'この動画を削除';
+                    deleteBtn.onclick = () => deleteSavedVideo(index);
+                    buttonsDiv.appendChild(deleteBtn);
+                }
                 
                 item.appendChild(nameSpan);
                 item.appendChild(buttonsDiv);
@@ -2610,6 +2629,19 @@
                 toggleTasks();
             }
             initializeAudio();
+
+            // デフォルトのプレイリストを追加
+            const defaultPlaylist = {
+                name: "デフォルト",
+                videoId: null,
+                playlistId: "PLHAiJQlYR9FhE53PIv7LHoAx_W7govDY7",
+                url: "https://youtube.com/playlist?list=PLHAiJQlYR9FhE53PIv7LHoAx_W7govDY7&si=Hz5wXGgCHjnTbgNQ"
+            };
+            if (!savedVideos.some(video => video.playlistId === defaultPlaylist.playlistId)) {
+                savedVideos.push(defaultPlaylist);
+                localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+                renderSavedVideos();
+            }
 
             // フォント選択オプションの更新
             const fontSelect = document.getElementById('clock-font-select');
